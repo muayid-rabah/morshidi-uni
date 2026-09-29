@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StudentProfile, CourseSection } from '../types/student';
 import { demoStudents } from '../data/demoStudents';
+import { checkSectionConflict } from '../services/academicEngine';
 
 export type NavigationPage =
   | 'dashboard'
@@ -35,6 +36,7 @@ interface StudentContextType {
   // Registration basket for current session
   basketSections: CourseSection[];
   addToBasket: (section: CourseSection) => { success: boolean; message: string };
+  addRecommendedSections: (sections: CourseSection[]) => void;
   removeFromBasket: (sectionId: string) => void;
   clearBasket: () => void;
   confirmMockRegistration: () => void;
@@ -183,6 +185,11 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addToBasket = (section: CourseSection) => {
+    if (section.status !== 'متاحة' || section.enrolled >= section.capacity) {
+      showToast('لا يمكن إضافة هذه الشعبة لأنها ممتلئة أو غير متاحة للتسجيل.', 'error');
+      return { success: false, message: 'الشعبة غير متاحة' };
+    }
+
     // Check if already in basket
     if (basketSections.some(s => s.id === section.id)) {
       showToast('الشعبة مضافة مسبقاً إلى سلة التسجيل', 'warning');
@@ -193,6 +200,13 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (basketSections.some(s => s.courseCode === section.courseCode)) {
       showToast('المادة مضافة مسبقاً بشعبة أخرى في السلة', 'warning');
       return { success: false, message: 'المادة مضافة بشعبة أخرى' };
+    }
+
+    const scheduledSections = [...activeStudent.currentRegisteredSections, ...basketSections];
+    const conflictingSection = scheduledSections.find(existing => checkSectionConflict(section, existing));
+    if (conflictingSection) {
+      showToast(`لا يمكن إضافة الشعبة: تتعارض مع ${conflictingSection.courseName} في جدولك.`, 'error');
+      return { success: false, message: 'يوجد تعارض زمني في الجدول' };
     }
 
     // Calculate total hours
@@ -207,6 +221,33 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setBasketSections(prev => [...prev, section]);
     showToast(`تمت إضافة مساق ${section.courseName} (شعبة ${section.sectionNumber}) إلى السلة`, 'success');
     return { success: true, message: 'تمت الإضافة بنجاح' };
+  };
+
+  const addRecommendedSections = (sections: CourseSection[]) => {
+    const selected = [...activeStudent.currentRegisteredSections, ...basketSections];
+    const nextBasket = [...basketSections];
+    let usedHours = selected.reduce((sum, section) => sum + section.credits, 0);
+    let addedCount = 0;
+
+    for (const section of sections) {
+      const duplicateCourse = [...selected, ...nextBasket].some(item => item.courseCode === section.courseCode);
+      const hasConflict = [...selected, ...nextBasket].some(item => checkSectionConflict(section, item));
+      const unavailable = section.status !== 'متاحة' || section.enrolled >= section.capacity;
+
+      if (duplicateCourse || hasConflict || unavailable || usedHours + section.credits > 18) continue;
+
+      nextBasket.push(section);
+      usedHours += section.credits;
+      addedCount += 1;
+    }
+
+    if (addedCount === 0) {
+      showToast('لا توجد شعب جديدة متوافقة يمكن إضافتها إلى السلة الآن.', 'info');
+      return;
+    }
+
+    setBasketSections(nextBasket);
+    showToast(`تمت إضافة ${addedCount} مواد مقترحة دون تعارض إلى سلة التسجيل.`, 'success');
   };
 
   const removeFromBasket = (sectionId: string) => {
@@ -250,6 +291,7 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         logout,
         basketSections,
         addToBasket,
+        addRecommendedSections,
         removeFromBasket,
         clearBasket,
         confirmMockRegistration,

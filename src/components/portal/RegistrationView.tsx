@@ -3,6 +3,8 @@ import { useStudent } from '../../context/StudentContext';
 import {
   planCourses,
   getRegistrationEligibility,
+  getRecommendedRegistrationSections,
+  checkSectionConflict,
   findScheduleConflicts,
 } from '../../services/academicEngine';
 import { offeredCourseSections } from '../../data/offeredSections';
@@ -20,7 +22,10 @@ import {
   Search,
   BookOpen,
   Sparkles,
-  Info
+  Info,
+  MapPin,
+  ListChecks,
+  Route
 } from 'lucide-react';
 
 export const RegistrationView: React.FC = () => {
@@ -28,6 +33,7 @@ export const RegistrationView: React.FC = () => {
     activeStudent,
     basketSections,
     addToBasket,
+    addRecommendedSections,
     removeFromBasket,
     clearBasket,
     confirmMockRegistration,
@@ -36,6 +42,7 @@ export const RegistrationView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState('ALL');
   const [selectedSectionsByCode, setSelectedSectionsByCode] = useState<Record<string, string>>({});
+  const [courseScope, setCourseScope] = useState<'eligible' | 'all'>('eligible');
 
   // Registered and basket hours
   const registeredHours = activeStudent.currentRegisteredSections.reduce(
@@ -48,6 +55,15 @@ export const RegistrationView: React.FC = () => {
   // Schedule conflicts
   const allCurrentSections = [...activeStudent.currentRegisteredSections, ...basketSections];
   const conflicts = useMemo(() => findScheduleConflicts(allCurrentSections), [allCurrentSections]);
+  const recommendedSections = useMemo(
+    () => getRecommendedRegistrationSections(activeStudent, offeredCourseSections, basketSections),
+    [activeStudent, basketSections]
+  );
+  const recommendedHours = recommendedSections.reduce((sum, section) => sum + section.credits, 0);
+  const eligibleCoursesCount = useMemo(
+    () => planCourses.filter(course => getRegistrationEligibility(course.code, activeStudent).state === 'ELIGIBLE').length,
+    [activeStudent]
+  );
 
   const handleAdd = (course: PlanCourse) => {
     const sections = offeredCourseSections.filter(s => s.courseCode === course.code);
@@ -65,9 +81,10 @@ export const RegistrationView: React.FC = () => {
         course.name.includes(searchQuery.trim());
       if (!matchesSearch) return false;
       if (selectedGroupFilter !== 'ALL' && course.group !== selectedGroupFilter) return false;
+      if (courseScope === 'eligible' && getRegistrationEligibility(course.code, activeStudent).state !== 'ELIGIBLE') return false;
       return true;
     });
-  }, [searchQuery, selectedGroupFilter]);
+  }, [searchQuery, selectedGroupFilter, courseScope, activeStudent]);
 
   return (
     <div className="space-y-5 animate-fade-in text-right">
@@ -86,7 +103,7 @@ export const RegistrationView: React.FC = () => {
             تسجيل المواد الدراسية — خطة 12 (الذكاء الاصطناعي)
           </h1>
           <p className="text-xs text-slate-600">
-            تتوفر 3 شعب دراسية متناسقة لكل مادة (ح ث خ / ن ر) مع لابات مخصصة ليوم واحد فقط أسبوعياً
+            يعرض النظام موادك المؤهلة الآن ويختار من ثلاث شعب متاحة لكل مادة دون تعارض مع جدولك.
           </p>
         </div>
 
@@ -102,6 +119,52 @@ export const RegistrationView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Personalized, conflict-free recommendation */}
+      <section className="overflow-hidden rounded-3xl border border-univ-200/80 bg-white shadow-soft">
+        <div className="bg-gradient-to-l from-univ-800 via-univ-700 to-teal-700 px-5 py-4 text-white">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">
+                <Route className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 className="text-sm font-extrabold">خطة مقترحة لهذه المرحلة</h2>
+                <p className="mt-0.5 text-xs text-teal-50">مبنية على المواد المنجزة، المتطلبات السابقة، المقاعد المتاحة وجدولك الحالي.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <span className="rounded-full bg-white/15 px-3 py-1">{eligibleCoursesCount} مادة مؤهل لها</span>
+              <span className="rounded-full bg-white/15 px-3 py-1">{recommendedHours} ساعة مقترحة</span>
+            </div>
+          </div>
+        </div>
+        <div className="p-4 sm:p-5">
+          {recommendedSections.length > 0 ? (
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap gap-2">
+                {recommendedSections.map(section => (
+                  <div key={section.id} className="rounded-xl border border-univ-100 bg-univ-50/70 px-3 py-2 text-xs">
+                    <div className="font-bold text-slate-900">{section.courseName}</div>
+                    <div className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-univ-800">
+                      <span>شعبة {section.sectionNumber}</span><span className="text-univ-300">•</span><span>{section.days}</span><span className="text-univ-300">•</span><span dir="ltr">{section.startTime}–{section.endTime}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => addRecommendedSections(recommendedSections)}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-univ-800 px-4 py-2.5 text-xs font-bold text-white shadow-soft transition-colors hover:bg-univ-900"
+              >
+                <ListChecks className="h-4 w-4" aria-hidden="true" />
+                إضافة الخطة المقترحة
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-600">لا توجد مواد متوافقة إضافية ضمن الحد المتبقي من الساعات. راجع سلتك أو جدولك الحالي.</p>
+          )}
+        </div>
+      </section>
 
       {/* Demo Notice Note (Concise and clean) */}
       <div className="px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
@@ -228,6 +291,21 @@ export const RegistrationView: React.FC = () => {
           />
         </div>
 
+        <div className="flex w-full rounded-xl border border-slate-200 bg-white p-1 sm:w-auto" role="group" aria-label="نطاق المواد المعروضة">
+          <button
+            onClick={() => setCourseScope('eligible')}
+            className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors sm:flex-none ${courseScope === 'eligible' ? 'bg-univ-800 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50'}`}
+          >
+            المتاح لي الآن
+          </button>
+          <button
+            onClick={() => setCourseScope('all')}
+            className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors sm:flex-none ${courseScope === 'all' ? 'bg-univ-800 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50'}`}
+          >
+            كامل الخطة
+          </button>
+        </div>
+
         <select
           value={selectedGroupFilter}
           onChange={e => setSelectedGroupFilter(e.target.value)}
@@ -253,6 +331,9 @@ export const RegistrationView: React.FC = () => {
 
           const chosenSecId = selectedSectionsByCode[course.code] || (sections[0] ? sections[0].id : '');
           const currentChosenSection = sections.find(s => s.id === chosenSecId) || sections[0];
+           const selectedSectionConflicts = currentChosenSection
+             ? allCurrentSections.some(section => checkSectionConflict(currentChosenSection, section))
+             : false;
 
           return (
             <div
@@ -322,8 +403,9 @@ export const RegistrationView: React.FC = () => {
                       </select>
 
                       {currentChosenSection && (
-                        <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">
-                          📍 {currentChosenSection.room} • {currentChosenSection.instructor}
+                        <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg ${selectedSectionConflicts ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600'}`}>
+                          <MapPin className="h-3 w-3" aria-hidden="true" />
+                          {selectedSectionConflicts ? 'تتعارض مع الجدول الحالي' : `${currentChosenSection.room} • ${currentChosenSection.instructor}`}
                         </span>
                       )}
                     </div>
@@ -345,10 +427,10 @@ export const RegistrationView: React.FC = () => {
                     </button>
                   ) : (
                     <button
-                      disabled={eligibility.state !== 'ELIGIBLE' || sections.length === 0}
+                      disabled={eligibility.state !== 'ELIGIBLE' || sections.length === 0 || selectedSectionConflicts}
                       onClick={() => handleAdd(course)}
                       className={`px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 ${
-                        eligibility.state === 'ELIGIBLE' && sections.length > 0
+                        eligibility.state === 'ELIGIBLE' && sections.length > 0 && !selectedSectionConflicts
                           ? 'bg-univ-800 hover:bg-univ-900 text-white shadow-soft'
                           : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
                       }`}

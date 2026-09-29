@@ -182,3 +182,43 @@ export function findScheduleConflicts(sections: CourseSection[]): { secA: Course
 
   return conflicts;
 }
+
+/**
+ * Builds a practical registration suggestion for the current student.
+ * Only courses that are eligible, have an available seat, fit the remaining
+ * credit limit, and do not overlap with the existing timetable are returned.
+ */
+export function getRecommendedRegistrationSections(
+  student: StudentProfile,
+  offeredSections: CourseSection[],
+  basketSections: CourseSection[] = [],
+  maxHours = 18
+): CourseSection[] {
+  const selected = [...student.currentRegisteredSections, ...basketSections];
+  let usedHours = selected.reduce((sum, section) => sum + section.credits, 0);
+  const recommendation: CourseSection[] = [];
+
+  for (const course of planCourses) {
+    if (usedHours >= maxHours) break;
+
+    const eligibility = getRegistrationEligibility(course.code, student);
+    const alreadySelected = selected.some(section => section.courseCode === course.code)
+      || recommendation.some(section => section.courseCode === course.code);
+
+    if (eligibility.state !== 'ELIGIBLE' || alreadySelected || usedHours + course.credits > maxHours) {
+      continue;
+    }
+
+    const compatibleSection = offeredSections
+      .filter(section => section.courseCode === course.code && section.status === 'متاحة')
+      .sort((a, b) => a.sectionNumber - b.sectionNumber)
+      .find(section => ![...selected, ...recommendation].some(existing => checkSectionConflict(section, existing)));
+
+    if (compatibleSection) {
+      recommendation.push(compatibleSection);
+      usedHours += compatibleSection.credits;
+    }
+  }
+
+  return recommendation;
+}

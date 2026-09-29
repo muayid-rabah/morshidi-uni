@@ -12,6 +12,13 @@
     direction: rtl;
     text-align: right;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background: #f7fafc;
+    color: #172033;
+  }
+
+  *:focus-visible {
+    outline: 3px solid rgba(13, 148, 136, 0.28);
+    outline-offset: 2px;
   }
 
   /* Custom smooth scrollbar */
@@ -68,4 +75,13 @@
 
 .animate-pulse-glow {
   animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
