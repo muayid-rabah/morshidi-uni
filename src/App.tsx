@@ -78,7 +78,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] text-slate-800 flex flex-col font-arabic">
+    <div className="min-h-screen bg-white text-slate-800 flex flex-col font-arabic">
       
       {/* Top Navbar */}
       <Navbar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />

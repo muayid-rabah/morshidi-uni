@@ -48,7 +48,7 @@ export const LoginView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F7F6] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden font-arabic">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden font-arabic">
       
       {/* Background Soft Academic Motifs (Light Mode) */}
       <div className="absolute inset-0 opacity-40 pointer-events-none">

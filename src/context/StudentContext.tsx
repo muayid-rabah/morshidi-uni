@@ -37,6 +37,7 @@ interface StudentContextType {
   basketSections: CourseSection[];
   addToBasket: (section: CourseSection) => { success: boolean; message: string };
   addRecommendedSections: (sections: CourseSection[]) => void;
+  replaceBasketSection: (currentSectionId: string, replacement: CourseSection) => { success: boolean; message: string };
   removeFromBasket: (sectionId: string) => void;
   clearBasket: () => void;
   confirmMockRegistration: () => void;
@@ -250,6 +251,37 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     showToast(`تمت إضافة ${addedCount} مواد مقترحة دون تعارض إلى سلة التسجيل.`, 'success');
   };
 
+  const replaceBasketSection = (currentSectionId: string, replacement: CourseSection) => {
+    const currentSection = basketSections.find(section => section.id === currentSectionId);
+    if (!currentSection) {
+      return { success: false, message: 'لم تعد هذه الشعبة موجودة في مسودة الجدول' };
+    }
+
+    if (currentSection.id === replacement.id) {
+      return { success: true, message: 'هذه هي الشعبة المختارة بالفعل' };
+    }
+
+    if (currentSection.courseCode !== replacement.courseCode || replacement.status !== 'متاحة' || replacement.enrolled >= replacement.capacity) {
+      showToast('لا يمكن استبدال الشعبة بالخيار المحدد.', 'error');
+      return { success: false, message: 'الشعبة البديلة غير متاحة' };
+    }
+
+    const scheduleWithoutCurrent = [
+      ...activeStudent.currentRegisteredSections,
+      ...basketSections.filter(section => section.id !== currentSectionId),
+    ];
+    const conflictingSection = scheduleWithoutCurrent.find(section => checkSectionConflict(replacement, section));
+
+    if (conflictingSection) {
+      showToast(`الشعبة البديلة تتعارض مع ${conflictingSection.courseName} في جدولك.`, 'error');
+      return { success: false, message: 'يوجد تعارض زمني في الجدول' };
+    }
+
+    setBasketSections(previous => previous.map(section => section.id === currentSectionId ? replacement : section));
+    showToast(`تم تعديل ${replacement.courseName} إلى الشعبة ${replacement.sectionNumber} دون تعارض.`, 'success');
+    return { success: true, message: 'تم تعديل الشعبة بنجاح' };
+  };
+
   const removeFromBasket = (sectionId: string) => {
     const sec = basketSections.find(s => s.id === sectionId);
     setBasketSections(prev => prev.filter(s => s.id !== sectionId));
@@ -292,6 +324,7 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         basketSections,
         addToBasket,
         addRecommendedSections,
+        replaceBasketSection,
         removeFromBasket,
         clearBasket,
         confirmMockRegistration,

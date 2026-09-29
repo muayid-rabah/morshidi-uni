@@ -156,14 +156,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 onClick={() => handleNavClick(item.id)}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all group ${
                   isActive
-                    ? 'bg-univ-800 text-white shadow-soft font-semibold'
+                    ? 'bg-univ-50 text-univ-900 ring-1 ring-univ-200 shadow-xs font-semibold'
                     : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon
                     className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
-                      isActive ? 'text-univ-200' : 'text-slate-400 group-hover:text-univ-700'
+                      isActive ? 'text-univ-800' : 'text-slate-400 group-hover:text-univ-700'
                     }`}
                   />
                   <span>{item.label}</span>

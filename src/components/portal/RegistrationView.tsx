@@ -17,6 +17,7 @@ import {
   Trash2,
   CheckCircle2,
   Calendar,
+  CalendarRange,
   Clock,
   ShieldAlert,
   Search,
@@ -34,6 +35,7 @@ export const RegistrationView: React.FC = () => {
     basketSections,
     addToBasket,
     addRecommendedSections,
+    replaceBasketSection,
     removeFromBasket,
     clearBasket,
     confirmMockRegistration,
@@ -122,20 +124,20 @@ export const RegistrationView: React.FC = () => {
 
       {/* Personalized, conflict-free recommendation */}
       <section className="overflow-hidden rounded-3xl border border-univ-200/80 bg-white shadow-soft">
-        <div className="bg-gradient-to-l from-univ-800 via-univ-700 to-teal-700 px-5 py-4 text-white">
+        <div className="border-b border-univ-100 bg-univ-50/80 px-5 py-4 text-slate-900">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-univ-800 shadow-xs ring-1 ring-univ-100">
                 <Route className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <h2 className="text-sm font-extrabold">خطة مقترحة لهذه المرحلة</h2>
-                <p className="mt-0.5 text-xs text-teal-50">مبنية على المواد المنجزة، المتطلبات السابقة، المقاعد المتاحة وجدولك الحالي.</p>
+                <p className="mt-0.5 text-xs text-slate-600">مبنية على المواد المنجزة، المتطلبات السابقة، المقاعد المتاحة وجدولك الحالي.</p>
               </div>
             </div>
             <div className="flex items-center gap-2 text-xs font-semibold">
-              <span className="rounded-full bg-white/15 px-3 py-1">{eligibleCoursesCount} مادة مؤهل لها</span>
-              <span className="rounded-full bg-white/15 px-3 py-1">{recommendedHours} ساعة مقترحة</span>
+              <span className="rounded-full border border-univ-100 bg-white px-3 py-1 text-univ-900">{eligibleCoursesCount} مادة مؤهل لها</span>
+              <span className="rounded-full border border-univ-100 bg-white px-3 py-1 text-univ-900">{recommendedHours} ساعة مقترحة</span>
             </div>
           </div>
         </div>
@@ -166,6 +168,61 @@ export const RegistrationView: React.FC = () => {
         </div>
       </section>
 
+      {/* Semester schedule and editable registration draft */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
+          <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <CalendarRange className="h-5 w-5 text-univ-800" aria-hidden="true" />
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">جدول الفصل الحالي</h2>
+                <p className="mt-0.5 text-[11px] text-slate-500">مواد مثبتة بالفعل — {registeredHours} ساعة</p>
+              </div>
+            </div>
+            <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-600">{activeStudent.currentRegisteredSections.length} مواد</span>
+          </div>
+          <div className="space-y-2">
+            {activeStudent.currentRegisteredSections.map(section => (
+              <div key={section.id} className="rounded-2xl border border-slate-100 bg-slate-50/70 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="font-bold text-slate-900">{section.courseName}</span>
+                  <span className="font-mono text-univ-800">شعبة {section.sectionNumber}</span>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500">{section.days} · <span dir="ltr">{section.startTime}–{section.endTime}</span></p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-univ-200 bg-white p-5 shadow-soft">
+          <div className="mb-4 flex items-center justify-between border-b border-univ-100 pb-3">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-univ-800" aria-hidden="true" />
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">مسودة جدول التسجيل</h2>
+                <p className="mt-0.5 text-[11px] text-slate-500">أضف المواد ثم عدّل الشعبة من السلة قبل التثبيت.</p>
+              </div>
+            </div>
+            <span className="rounded-full bg-univ-50 px-2.5 py-1 text-[11px] font-bold text-univ-800">{basketHours} ساعة</span>
+          </div>
+          {basketSections.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-5 text-center text-xs text-slate-500">لم تضف موادًا بعد. استخدم الخطة المقترحة أو اختر المواد من القائمة أدناه.</div>
+          ) : (
+            <div className="space-y-2">
+              {basketSections.map(section => (
+                <div key={section.id} className="rounded-2xl border border-univ-100 bg-univ-50/40 px-3 py-2.5 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-slate-900">{section.courseName}</span>
+                    <span className="font-mono font-bold text-univ-800">شعبة {section.sectionNumber}</span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-slate-500">{section.days} · <span dir="ltr">{section.startTime}–{section.endTime}</span></p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Demo Notice Note (Concise and clean) */}
       <div className="px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
         <div className="flex items-center gap-2 font-medium">
@@ -180,7 +237,10 @@ export const RegistrationView: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
             <ClipboardList className="w-5 h-5 text-univ-800" />
-            <h2 className="text-sm sm:text-base font-bold text-slate-900">سلة المواد المختارة</h2>
+            <div>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900">تعديل جدول التسجيل</h2>
+              <p className="mt-0.5 text-[11px] text-slate-500">بدّل الشعبة أو احذف المادة قبل تثبيت الجدول.</p>
+            </div>
             <span className="px-2.5 py-0.5 rounded-full bg-univ-100 text-univ-800 text-xs font-bold font-mono">
               {basketSections.length} مساق
             </span>
@@ -220,7 +280,15 @@ export const RegistrationView: React.FC = () => {
           </p>
         ) : (
           <div className="space-y-2">
-            {basketSections.map(sec => (
+            {basketSections.map(sec => {
+              const alternativeSections = offeredCourseSections.filter(section =>
+                section.courseCode === sec.courseCode
+                && section.status === 'متاحة'
+                && ![...activeStudent.currentRegisteredSections, ...basketSections.filter(item => item.id !== sec.id)]
+                  .some(existing => checkSectionConflict(section, existing))
+              );
+
+              return (
               <div
                 key={sec.id}
                 className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-univ-50/40 transition-colors"
@@ -249,15 +317,33 @@ export const RegistrationView: React.FC = () => {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => removeFromBasket(sec.id)}
-                  className="p-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 transition-colors"
-                  title="إزالة من السلة"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <label className="sr-only" htmlFor={`section-${sec.id}`}>تعديل الشعبة</label>
+                  <select
+                    id={`section-${sec.id}`}
+                    value={sec.id}
+                    onChange={event => {
+                      const replacement = offeredCourseSections.find(section => section.id === event.target.value);
+                      if (replacement) replaceBasketSection(sec.id, replacement);
+                    }}
+                    className="max-w-48 rounded-xl border border-univ-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-univ-900 focus:outline-none"
+                  >
+                    {alternativeSections.map(section => (
+                      <option key={section.id} value={section.id}>شعبة {section.sectionNumber} — {section.days} ({section.startTime}–{section.endTime})</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => removeFromBasket(sec.id)}
+                    className="p-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 transition-colors"
+                    title="إزالة من السلة"
+                    aria-label={`إزالة ${sec.courseName} من المسودة`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            ))}
+              );
+            })}
 
             <div className="flex items-center justify-between pt-2">
               <button
