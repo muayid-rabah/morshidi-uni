@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <!-- Outer Shield / Academic Seal Ring -->
+  <defs>
+    <linearGradient id="morshidiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#065f46" />
+      <stop offset="50%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#115e59" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Circle Border -->
+  <circle cx="120" cy="120" r="112" stroke="url(#morshidiGrad)" stroke-width="4" fill="#ffffff" />
+  <circle cx="120" cy="120" r="104" stroke="url(#goldGrad)" stroke-width="1.5" stroke-dasharray="4 2" fill="#f0fdf9" />
+
+  <!-- Shield Base -->
+  <path d="M120 32 C155 32 188 44 188 78 C188 132 148 178 120 196 C92 178 52 132 52 78 C52 44 85 32 120 32 Z" 
+        fill="url(#morshidiGrad)" stroke="url(#goldGrad)" stroke-width="2.5" />
+
+  <!-- Inner Torch / Star of Knowledge -->
+  <polygon points="120,48 123,58 134,58 125,64 128,75 120,68 112,75 115,64 106,58 117,58" fill="url(#goldGrad)" />
+
+  <!-- Open Book of Wisdom -->
+  <g transform="translate(74, 82) scale(0.92)">
+    <!-- Left Page -->
+    <path d="M50 42 C30 36 10 38 2 45 L2 18 C10 11 30 9 50 16 Z" fill="#ffffff" stroke="#0f766e" stroke-width="1.5" />
+    <!-- Right Page -->
+    <path d="M50 42 C70 36 90 38 98 45 L98 18 C90 11 70 9 50 16 Z" fill="#ffffff" stroke="#0f766e" stroke-width="1.5" />
+    <!-- Center Spine -->
+    <line x1="50" y1="16" x2="50" y2="42" stroke="url(#goldGrad)" stroke-width="2.5" />
+    <!-- Text Lines Left -->
+    <line x1="10" y1="23" x2="42" y2="21" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" />
+    <line x1="10" y1="28" x2="42" y2="26" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" />
+    <line x1="10" y1="33" x2="35" y2="31" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" />
+    <!-- Text Lines Right -->
+    <line x1="58" y1="21" x2="90" y2="23" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" />
+    <line x1="58" y1="26" x2="90" y2="28" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" />
+    <line x1="58" y1="31" x2="83" y2="33" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+
+  <!-- AI Neural Network Nodes / Tech Motif at Shield Base -->
+  <g transform="translate(85, 136)">
+    <!-- Circuit lines -->
+    <line x1="35" y1="6" x2="15" y2="24" stroke="url(#goldGrad)" stroke-width="1.5" />
+    <line x1="35" y1="6" x2="55" y2="24" stroke="url(#goldGrad)" stroke-width="1.5" />
+    <line x1="15" y1="24" x2="35" y2="40" stroke="url(#goldGrad)" stroke-width="1.5" />
+    <line x1="55" y1="24" x2="35" y2="40" stroke="url(#goldGrad)" stroke-width="1.5" />
+    <!-- Nodes -->
+    <circle cx="35" cy="6" r="3.5" fill="#fde68a" stroke="#d97706" stroke-width="1" />
+    <circle cx="15" cy="24" r="3" fill="#fde68a" stroke="#d97706" stroke-width="1" />
+    <circle cx="55" cy="24" r="3" fill="#fde68a" stroke="#d97706" stroke-width="1" />
+    <circle cx="35" cy="40" r="3.5" fill="#fde68a" stroke="#d97706" stroke-width="1" />
+  </g>
+
+  <!-- Laurel / Olive Wreath accents -->
+  <path d="M42 120 C36 150 56 182 82 202" stroke="url(#morshidiGrad)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+  <path d="M198 120 C204 150 184 182 158 202" stroke="url(#morshidiGrad)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+</svg>
