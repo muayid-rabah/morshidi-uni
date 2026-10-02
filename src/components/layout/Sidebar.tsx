@@ -14,7 +14,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { id: 'class-schedule', label: 'الجدول الدراسي', icon: CalendarRange },
     { id: 'exams', label: 'الامتحانات', icon: FileCheck2 },
     { id: 'registration', label: 'التسجيل الإلكتروني', icon: ReceiptText, badge: basketSections.length || undefined },
-    { id: 'study-plan', label: 'شهادة الأداء الأكاديمي', icon: GraduationCap },
+    { id: 'study-plan', label: 'الخطة الدراسية', icon: GraduationCap },
     { id: 'grades', label: 'العلامات', icon: FileText },
     { id: 'gpa', label: 'العلامات التفصيلية', icon: Sparkles },
   ];

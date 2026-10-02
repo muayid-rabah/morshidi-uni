@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StudentProfile, CourseSection } from '../types/student';
 import { demoStudents } from '../data/demoStudents';
-import { checkSectionConflict } from '../services/academicEngine';
+import { checkSectionConflict, getRegistrationEligibility } from '../services/academicEngine';
 
 export type NavigationPage =
   | 'dashboard'
@@ -187,6 +187,12 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addToBasket = (section: CourseSection) => {
+    const eligibility = getRegistrationEligibility(section.courseCode, activeStudent);
+    if (eligibility.state !== 'ELIGIBLE') {
+      showToast(eligibility.reason || 'لا يمكن تسجيل هذه المادة في الوقت الحالي.', 'error');
+      return { success: false, message: eligibility.reason || 'المادة غير مسموح بها' };
+    }
+
     if (section.status !== 'متاحة' || section.enrolled >= section.capacity) {
       showToast('لا يمكن إضافة هذه الشعبة لأنها ممتلئة أو غير متاحة للتسجيل.', 'error');
       return { success: false, message: 'الشعبة غير متاحة' };

@@ -14,7 +14,7 @@ import {
 
 export const ClassScheduleView: React.FC = () => {
   const { activeStudent } = useStudent();
-  const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar');
+  const [viewMode, setViewMode] = useState<'calendar' | 'table'>('table');
 
   const days: ('الأحد' | 'الاثنين' | 'الثلاثاء' | 'الأربعاء' | 'الخميس')[] = [
     'الأحد',

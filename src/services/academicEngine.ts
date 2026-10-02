@@ -83,6 +83,17 @@ export function getRegistrationEligibility(
     };
   }
 
+  // Field training and graduation projects are senior-level courses.
+  // They only become registerable after completing 90 credited hours.
+  const isProjectOrTraining = /مشروع|تدريب/.test(course.name);
+  if (isProjectOrTraining && calculateStudentProgress(student).totalCompletedHours < 90) {
+    return {
+      state: 'NOT_ELIGIBLE',
+      label: 'غير مسموح',
+      reason: 'يتطلب إتمام 90 ساعة معتمدة قبل تسجيل المشروع أو التدريب الميداني'
+    };
+  }
+
   const prereqsMet = arePrerequisitesSatisfied(course.prerequisites, student.completedCourses);
   if (!prereqsMet) {
     return {
