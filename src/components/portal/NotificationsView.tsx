@@ -21,10 +21,10 @@ export const NotificationsView: React.FC = () => {
   return <section className="notifications-page animate-fade-in text-right">
     <header className="notifications-hero">
       <div className="notifications-hero-icon"><BellRing className="h-6 w-6" /></div>
-      <div><p>بوابة الجامعة</p><h1>الإشعارات</h1><span>إعلانات ورسائل عامة تصل إلى جميع الطلبة.</span></div>
+      <div><p>بوابة الجامعة</p><h1>الرسائل</h1><span>إشعارات وإعلانات عامة تصل إلى جميع الطلبة.</span></div>
       <button onClick={markAllRead} disabled={!unreadCount} className="notifications-read-button"><CheckCheck className="h-4 w-4" />تعليم الكل كمقروء</button>
     </header>
-    <div className="notifications-summary"><span><b>{unreadCount}</b> إشعارات جديدة</span><small>يتم تحديث الإعلانات الرسمية من الجامعة هنا</small></div>
+    <div className="notifications-summary"><span><b>{unreadCount}</b> رسائل جديدة</span><small>يتم تحديث الإعلانات الرسمية من الجامعة هنا</small></div>
     <div className="notifications-list">
       {notices.map(notice => {
         const Icon = noticeIcon(notice.tone);
@@ -35,6 +35,6 @@ export const NotificationsView: React.FC = () => {
         </article>;
       })}
     </div>
-    <div className="notifications-footer"><Megaphone className="h-4 w-4" />هذه الإشعارات موحّدة لكل حسابات الطلبة.</div>
+    <div className="notifications-footer"><Megaphone className="h-4 w-4" />هذه الرسائل إشعارات موحّدة لكل حسابات الطلبة.</div>
   </section>;
 };

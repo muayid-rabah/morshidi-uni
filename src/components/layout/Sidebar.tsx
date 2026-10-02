@@ -10,7 +10,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const mainItems: NavItem[] = [
     { id: 'dashboard', label: 'الشاشة الرئيسية', icon: LayoutDashboard },
     { id: 'student-info', label: 'معلومات الطالب', icon: UserCheck },
-    { id: 'notifications', label: 'الإشعارات', icon: Bell, badge: 5 },
+    { id: 'notifications', label: 'الرسائل', icon: Bell, badge: 5 },
     { id: 'class-schedule', label: 'الجدول الدراسي', icon: CalendarRange },
     { id: 'exams', label: 'الامتحانات', icon: FileCheck2 },
     { id: 'registration', label: 'التسجيل الإلكتروني', icon: ReceiptText, badge: basketSections.length || undefined },

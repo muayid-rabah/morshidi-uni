@@ -8,7 +8,7 @@ const pageTitles: Record<string, string> = {
   dashboard: 'الرئيسية', 'student-info': 'ملف الطالب', registration: 'التسجيل الإلكتروني',
   'offered-courses': 'الشعب المطروحة', 'add-drop': 'السحب والإضافة', 'class-schedule': 'الجدول الدراسي',
   grades: 'العلامات', gpa: 'المعدل التراكمي', 'study-plan': 'الخطة الدراسية', absences: 'الغيابات',
-  exams: 'الامتحانات', financial: 'الأمور المالية', notifications: 'الإشعارات', 'smart-assistant': 'مرشدي الذكي',
+  exams: 'الامتحانات', financial: 'الأمور المالية', notifications: 'الرسائل', 'smart-assistant': 'مرشدي الذكي',
 };
 
 export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {

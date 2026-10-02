@@ -313,6 +313,7 @@
 .legacy-portal .term-query-form select { min-height: 43px; border: 1px solid #3e70af; border-radius: 8px; padding: 0.35rem 0.7rem; color: #f0e4d3; }
 .legacy-portal .term-query-form .legacy-primary-button { min-height: 43px; padding-inline: 1rem; }
 .legacy-portal .term-results { margin-top: 1.35rem; border: 1px solid var(--portal-line); background: #202426; }
+.legacy-portal .term-schedule-empty { margin-top: 1.35rem; border: 1px dashed rgba(128, 158, 228, .34); border-radius: 15px; padding: 2rem 1rem; background: rgba(14, 23, 43, .68); color: #aebbd1; text-align: center; font-size: .82rem; }
 
 /* Morshidi signature: layered midnight glass with electric academic accents. */
 .legacy-portal {
