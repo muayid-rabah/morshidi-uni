@@ -298,6 +298,17 @@
 .legacy-portal .plan-group-table .legacy-table td,
 .legacy-portal .plan-group-table .legacy-table th { padding: 0.45rem 0.6rem; }
 
+.legacy-portal .term-query-page { min-height: 560px; padding-top: 1.2rem; }
+.legacy-portal .term-query-page header { border-bottom: 1px solid #245398; padding-bottom: 1.25rem; text-align: right; }
+.legacy-portal .term-query-page h1 { color: #e4d2be; font-size: 1.55rem; font-weight: 800; }
+.legacy-portal .term-query-page header p { margin-top: 0.35rem; color: #e0d2c3; font-size: 0.84rem; }
+.legacy-portal .term-query-form { display: flex; flex-wrap: wrap; align-items: end; gap: 0.6rem; justify-content: flex-start; padding: 1.6rem 0 1.8rem; border-bottom: 1px solid #1e354d; }
+.legacy-portal .term-query-form > div { display: grid; min-width: min(100%, 300px); flex: 1; gap: 0.35rem; }
+.legacy-portal .term-query-form label { color: #c6b7a6; font-size: 0.7rem; font-weight: 700; }
+.legacy-portal .term-query-form select { min-height: 43px; border: 1px solid #3e70af; border-radius: 8px; padding: 0.35rem 0.7rem; color: #f0e4d3; }
+.legacy-portal .term-query-form .legacy-primary-button { min-height: 43px; padding-inline: 1rem; }
+.legacy-portal .term-results { margin-top: 1.35rem; border: 1px solid var(--portal-line); background: #202426; }
+
 @media (max-width: 640px) {
   .legacy-portal .legacy-page-heading { align-items: stretch; flex-direction: column; }
   .legacy-portal .legacy-open-status { align-self: flex-start; }
