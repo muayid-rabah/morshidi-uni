@@ -247,6 +247,40 @@
 .legacy-portal .registration-submit-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.7rem 0.8rem; border: 1px solid var(--portal-line); background: #202426; color: #c6b7a6; font-size: 0.75rem; }
 .legacy-portal .registration-submit-bar strong { color: #79acff; }
 
+/* The portal navigation is deliberately short; secondary screens live under "more". */
+.legacy-portal .portal-sidebar { display: flex; flex-direction: column; border-left: 1px solid #303638; background: #171a1b; color: #c6b7a6; }
+.legacy-portal .portal-profile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.45rem; padding: 1.05rem 0.8rem 0.85rem; text-align: center; }
+.legacy-portal .portal-avatar { display: flex; height: 74px; width: 74px; align-items: center; justify-content: center; border: 2px solid #245398; border-radius: 8px; background: #2a3033; color: #79acff; font-size: 1.7rem; font-weight: 800; }
+.legacy-portal .portal-profile strong { max-width: 100%; overflow: hidden; color: #f0e4d3; font-size: 0.78rem; text-overflow: ellipsis; white-space: nowrap; }
+.legacy-portal .portal-profile span { color: #63a5ff; font-size: 0.72rem; font-weight: 700; }
+.legacy-portal .portal-close { position: absolute; top: 0.7rem; left: 0.7rem; color: #c6b7a6; }
+.legacy-portal .portal-side-nav { flex: 1; overflow-y: auto; padding: 0.45rem 0.65rem; }
+.legacy-portal .portal-side-item { display: flex; width: 100%; align-items: center; justify-content: space-between; border-radius: 5px; padding: 0.58rem 0.65rem; color: #c6b7a6; font-size: 0.76rem; font-weight: 700; text-align: right; transition: background-color .15s ease, color .15s ease; }
+.legacy-portal .portal-side-item > span { display: flex; align-items: center; gap: 0.6rem; }
+.legacy-portal .portal-side-item:hover { background: #252b2d; color: #f0e4d3; }
+.legacy-portal .portal-side-item.active { background: #245398; color: #fff; }
+.legacy-portal .portal-side-item b { display: inline-flex; min-width: 17px; height: 17px; align-items: center; justify-content: center; border-radius: 999px; background: #d91c1c; color: #fff; font-size: 0.62rem; }
+.legacy-portal .portal-side-item.more { margin-top: 0.1rem; }
+.legacy-portal .portal-more-items { margin: 0.15rem 0 0.35rem; border-right: 1px solid #384044; padding-right: 0.25rem; }
+.legacy-portal .portal-logout { border-top: 1px solid #303638; padding: 0.55rem 0.65rem; }
+.legacy-portal .portal-logout .portal-side-item { color: #e5b8ad; }
+
+.legacy-portal .registration-portal { display: grid; gap: 1rem; }
+.legacy-portal .registration-tabs { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.65rem; border-bottom: 1px solid #245398; padding-bottom: 0.9rem; }
+.legacy-portal .registration-tabs button { display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 7px; background: #245398; padding: 0.58rem 0.8rem; color: #fff; font-size: 0.86rem; font-weight: 700; opacity: .78; }
+.legacy-portal .registration-tabs button:hover,
+.legacy-portal .registration-tabs button.active { background: #2f68c4; opacity: 1; }
+.legacy-portal .registration-tab-content { display: grid; gap: 0.9rem; padding: 0.25rem 0; }
+.legacy-portal .registration-tab-content h2 { color: #f0e4d3; font-size: 1.35rem; font-weight: 800; }
+.legacy-portal .registration-tab-content > p,
+.legacy-portal .registration-title-row p { color: #c6b7a6; font-size: 0.8rem; }
+.legacy-portal .registration-title-row { display: flex; align-items: end; justify-content: space-between; gap: 0.8rem; }
+.legacy-portal .concise-table { min-width: 620px; }
+.legacy-portal .registration-total { border-top: 1px solid #343b3e; padding-top: 0.75rem; color: #c6b7a6; font-size: 0.76rem; }
+.legacy-portal .registration-total strong { color: #79acff; }
+.legacy-portal .danger-button { background: #245398; }
+.legacy-portal .danger-button:hover { background: #9f2424; }
+
 @media (max-width: 640px) {
   .legacy-portal .legacy-page-heading { align-items: stretch; flex-direction: column; }
   .legacy-portal .legacy-open-status { align-self: flex-start; }
@@ -259,6 +293,8 @@
   .legacy-portal .registration-result-count { width: 100%; margin-inline-start: 0; }
   .legacy-portal .registration-submit-bar { align-items: stretch; flex-direction: column; }
   .legacy-portal .registration-submit-bar .legacy-primary-button { width: 100%; }
+  .legacy-portal .registration-title-row { align-items: stretch; flex-direction: column; }
+  .legacy-portal .registration-title-row .legacy-primary-button { width: 100%; }
 }
 
 /* Animations */

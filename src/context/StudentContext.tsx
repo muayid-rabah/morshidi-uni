@@ -41,6 +41,7 @@ interface StudentContextType {
   removeFromBasket: (sectionId: string) => void;
   clearBasket: () => void;
   confirmMockRegistration: () => void;
+  withdrawRegisteredSection: (sectionId: string) => void;
 
   // Toast notifications
   toasts: ToastMessage[];
@@ -311,6 +312,16 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     showToast('تم حفظ التسجيل التجريبي بنجاح داخل نظام مرشدي!', 'success');
   };
 
+  const withdrawRegisteredSection = (sectionId: string) => {
+    const section = activeStudent.currentRegisteredSections.find(item => item.id === sectionId);
+    if (!section) return;
+    setActiveStudent(previous => ({
+      ...previous,
+      currentRegisteredSections: previous.currentRegisteredSections.filter(item => item.id !== sectionId),
+    }));
+    showToast(`تم سحب مادة ${section.courseName} من جدولك.`, 'info');
+  };
+
   return (
     <StudentContext.Provider
       value={{
@@ -328,6 +339,7 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         removeFromBasket,
         clearBasket,
         confirmMockRegistration,
+        withdrawRegisteredSection,
         toasts,
         showToast,
         dismissToast,
