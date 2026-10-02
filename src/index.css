@@ -230,6 +230,23 @@
 .legacy-portal .legacy-scope-toggle button { padding: 0.45rem 0.65rem; color: #c6b7a6; font-size: 0.72rem; font-weight: 700; }
 .legacy-portal .legacy-scope-toggle button.active { background: #245398; color: #fff; }
 
+.legacy-portal .single-registration-page { display: grid; gap: 0.75rem; }
+.legacy-portal .legacy-registration-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; padding: 0.7rem 0; }
+.legacy-portal .legacy-registration-controls > select { min-width: 155px; min-height: 34px; border: 1px solid #3e70af; border-radius: 4px; padding: 0.25rem 0.5rem; }
+.legacy-portal .registration-hours { display: flex; align-items: center; gap: 0.8rem; margin-inline-start: auto; color: #c6b7a6; font-size: 0.72rem; }
+.legacy-portal .registration-hours strong { color: #79acff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.legacy-portal .registration-filter-row { padding: 0.65rem; }
+.legacy-portal .registration-result-count { margin-inline-start: auto; color: #79acff; font-size: 0.72rem; font-weight: 700; }
+.legacy-portal .registration-main-table { border: 1px solid var(--portal-line); background: #202426; }
+.legacy-portal .registration-main-table .legacy-table { min-width: 1050px; font-size: 0.68rem; }
+.legacy-portal .registration-main-table .legacy-table th,
+.legacy-portal .registration-main-table .legacy-table td { padding: 0.48rem 0.55rem; }
+.legacy-portal .registration-main-table .legacy-table td:nth-child(2) { min-width: 170px; }
+.legacy-portal .registration-main-table .legacy-table td:nth-child(3) { min-width: 140px; }
+.legacy-portal .registration-main-table .legacy-table select { min-width: 72px; }
+.legacy-portal .registration-submit-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.7rem 0.8rem; border: 1px solid var(--portal-line); background: #202426; color: #c6b7a6; font-size: 0.75rem; }
+.legacy-portal .registration-submit-bar strong { color: #79acff; }
+
 @media (max-width: 640px) {
   .legacy-portal .legacy-page-heading { align-items: stretch; flex-direction: column; }
   .legacy-portal .legacy-open-status { align-self: flex-start; }
@@ -237,6 +254,11 @@
   .legacy-portal .legacy-hour-summary { width: 100%; margin-inline-start: 0; justify-content: space-between; }
   .legacy-portal .legacy-filter-row > select { width: 100%; }
   .legacy-portal .legacy-search { width: 100%; }
+  .legacy-portal .legacy-registration-controls > select { flex: 1; min-width: 130px; }
+  .legacy-portal .registration-hours { width: 100%; margin-inline-start: 0; justify-content: space-between; }
+  .legacy-portal .registration-result-count { width: 100%; margin-inline-start: 0; }
+  .legacy-portal .registration-submit-bar { align-items: stretch; flex-direction: column; }
+  .legacy-portal .registration-submit-bar .legacy-primary-button { width: 100%; }
 }
 
 /* Animations */
