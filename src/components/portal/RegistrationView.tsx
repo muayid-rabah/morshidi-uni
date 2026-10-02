@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useStudent } from '../../context/StudentContext';
-import { getRegistrationEligibility, planCourses } from '../../services/academicEngine';
+import { calculateStudentProgress, getRegistrationEligibility, planCourses } from '../../services/academicEngine';
 import { offeredCourseSections } from '../../data/offeredSections';
 import { StatusBadge } from '../common/StatusBadge';
 import { CalendarClock, ClipboardList, ListChecks, Plus, Search } from 'lucide-react';
@@ -15,6 +15,8 @@ export const RegistrationView: React.FC = () => {
   const [groupFilter, setGroupFilter] = useState('ALL');
   const registeredHours = activeStudent.currentRegisteredSections.reduce((sum, section) => sum + section.credits, 0);
   const basketHours = basketSections.reduce((sum, section) => sum + section.credits, 0);
+  const progress = calculateStudentProgress(activeStudent);
+  const failedHours = activeStudent.semesterHistory.flatMap(semester => semester.courses).filter(course => course.status === 'راسب').reduce((sum, course) => sum + course.credits, 0);
   const offeredRows = useMemo(() => offeredCourseSections.filter(section => {
     const course = planCourses.find(item => item.code === section.courseCode);
     const query = searchQuery.trim();
@@ -23,6 +25,7 @@ export const RegistrationView: React.FC = () => {
 
   return <div className="registration-compact registration-portal animate-fade-in text-right">
     <header className="legacy-page-heading"><div><h1>التسجيل الإلكتروني</h1></div></header>
+    <div className="academic-hours-summary"><div><span>الساعات المنجزة</span><strong>{progress.totalCompletedHours}</strong></div><div><span>الساعات المتبقية</span><strong>{progress.remainingHours}</strong></div><div><span>ساعات هذا الفصل</span><strong>{registeredHours + basketHours}</strong></div><div className={failedHours ? 'failed' : ''}><span>ساعات الرسوب</span><strong>{failedHours}</strong></div></div>
     <nav className="registration-tabs" aria-label="أقسام التسجيل">
       <button className={tab === 'offered' ? 'active' : ''} onClick={() => setTab('offered')}><ClipboardList className="h-5 w-5" />المواد المطروحة</button>
       <button className={tab === 'dates' ? 'active' : ''} onClick={() => setTab('dates')}><CalendarClock className="h-5 w-5" />مواعيد التسجيل</button>

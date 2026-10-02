@@ -13,8 +13,10 @@ const groups: RequirementGroup[] = [
 export const StudyPlanView: React.FC = () => {
   const { activeStudent } = useStudent();
   const progress = calculateStudentProgress(activeStudent);
+  const failedHours = activeStudent.semesterHistory.flatMap(semester => semester.courses).filter(course => course.status === 'راسب').reduce((sum, course) => sum + course.credits, 0);
   return <div className="study-plan-legacy animate-fade-in text-right">
     <header className="legacy-page-heading"><div><h1>الخطط الدراسية</h1><p>الخطة الدراسية المعتمدة لتخصص {activeStudent.major} — {activeStudent.studyPlan}</p></div></header>
+    <div className="academic-hours-summary"><div><span>الساعات المنجزة</span><strong>{progress.totalCompletedHours}</strong></div><div><span>الساعات المتبقية</span><strong>{progress.remainingHours}</strong></div><div><span>ساعات هذا الفصل</span><strong>{progress.currentRegisteredHours}</strong></div><div className={failedHours ? 'failed' : ''}><span>ساعات الرسوب</span><strong>{failedHours}</strong></div></div>
     <div className="plan-action-tabs"><button className="active"><FileText className="h-4 w-4" />المواد المشمولة في الخطة الدراسية</button><button><GraduationCap className="h-4 w-4" />الخطة الدراسية</button></div>
     <div className="plan-student-line">خطة {activeStudent.studyPlan} · الساعات المنجزة: <strong>{progress.totalCompletedHours}</strong> من <strong>{progress.totalPlanHours}</strong> ساعة</div>
     {groups.map(group => {
