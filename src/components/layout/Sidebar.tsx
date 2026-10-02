@@ -1,12 +1,12 @@
 import React from 'react';
 import { useStudent, NavigationPage } from '../../context/StudentContext';
-import { Bell, CalendarRange, FileCheck2, FileText, GraduationCap, LayoutDashboard, LogOut, ReceiptText, Sparkles, UserCheck, X } from 'lucide-react';
+import { Bell, CalendarRange, FileCheck2, FileText, GraduationCap, LayoutDashboard, LogOut, ReceiptText, RotateCcw, Sparkles, UserCheck, X } from 'lucide-react';
 
 interface SidebarProps { isOpen: boolean; onClose: () => void; }
 interface NavItem { id: NavigationPage; label: string; icon: React.ComponentType<{ className?: string }>; badge?: string | number; }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { activePage, setActivePage, activeStudent, logout, basketSections } = useStudent();
+  const { activePage, setActivePage, activeStudent, logout, resetSandbox, basketSections } = useStudent();
   const mainItems: NavItem[] = [
     { id: 'dashboard', label: 'الشاشة الرئيسية', icon: LayoutDashboard },
     { id: 'student-info', label: 'معلومات الطالب', icon: UserCheck },
@@ -33,6 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       <nav className="portal-side-nav" aria-label="التنقل الرئيسي">{mainItems.map(renderItem)}</nav>
       <div className="portal-sidebar-bottom">
         <button onClick={() => openPage('smart-assistant')} className={`portal-ai-quick ${activePage === 'smart-assistant' ? 'active' : ''}`}><span><Sparkles className="h-4 w-4" />مرشدي الذكي</span><em>AI</em></button>
+        <button onClick={resetSandbox} className="portal-side-item text-amber-600 hover:text-amber-700"><span><RotateCcw className="h-4 w-4" />إعادة ضبط البيئة التجريبية</span></button>
         <div className="portal-logout"><button onClick={logout} className="portal-side-item"><span><LogOut className="h-4 w-4" />تسجيل الخروج</span></button></div>
       </div>
     </aside>

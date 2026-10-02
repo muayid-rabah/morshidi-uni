@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useStudent } from '../../context/StudentContext';
 import {
   Sparkles,
   ExternalLink,
@@ -8,8 +9,9 @@ import {
 } from 'lucide-react';
 
 export const MorshidiAssistantView: React.FC = () => {
+  const { activeStudent } = useStudent();
   const [iframeKey, setIframeKey] = useState(0);
-  const morshidiUrl = 'https://morshidi.vercel.app/';
+  const morshidiUrl = `https://morshidi.vercel.app/student?sandbox_student=${activeStudent.universityId}&sandbox=true`;
 
   const handleRefresh = () => {
     setIframeKey(prev => prev + 1);

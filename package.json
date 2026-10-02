@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "export:data": "node scripts/export_sandbox_contract.cjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

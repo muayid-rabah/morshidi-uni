@@ -43,6 +43,7 @@ interface StudentContextType {
   clearBasket: () => void;
   confirmMockRegistration: () => void;
   withdrawRegisteredSection: (sectionId: string) => void;
+  resetSandbox: () => void;
 
   // Toast notifications
   toasts: ToastMessage[];
@@ -329,6 +330,15 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     showToast(`تم سحب مادة ${section.courseName} من جدولك.`, 'info');
   };
 
+  const resetSandbox = () => {
+    sessionStorage.removeItem('morshidi_student_id');
+    setIsAuthenticated(false);
+    setActiveStudent(demoStudents[0]);
+    setBasketSections([]);
+    setActivePage('dashboard');
+    showToast('تمت إعادة ضبط البيئة التجريبية واستعادة البيانات الأولية.', 'info');
+  };
+
   return (
     <StudentContext.Provider
       value={{
@@ -347,6 +357,7 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         clearBasket,
         confirmMockRegistration,
         withdrawRegisteredSection,
+        resetSandbox,
         toasts,
         showToast,
         dismissToast,
