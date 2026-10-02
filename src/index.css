@@ -508,3 +508,99 @@
   .legacy-portal .notification-card { padding: .85rem; }
   .legacy-portal .notification-meta { align-items: flex-start; flex-direction: column; gap: .15rem; }
 }
+
+/* Morshidi login: a dedicated premium entrance that shares the portal's midnight character. */
+.morshidi-login { --login-bg: #08110f; --login-surface: rgba(17, 26, 29, .9); --login-line: rgba(96, 235, 203, .27); --login-text: #f1f4f2; --login-muted: #b4c6c1; --login-accent: #40e0bd; position: relative; display: grid; place-items: center; overflow: hidden; isolation: isolate; background: #08110f; color: var(--login-text); }
+.morshidi-login::before { position: absolute; inset: 0; z-index: -4; background: radial-gradient(circle at 86% 8%, rgba(42, 181, 152, .17), transparent 30rem), radial-gradient(circle at 14% 96%, rgba(48, 90, 177, .15), transparent 36rem), linear-gradient(135deg, #09100f, #101719 65%, #07100e); content: ''; }
+.morshidi-login-grid { position: absolute; inset: 0; z-index: -3; opacity: .16; background-image: linear-gradient(rgba(111, 255, 215, .16) 1px, transparent 1px), linear-gradient(90deg, rgba(111, 255, 215, .16) 1px, transparent 1px); background-size: 44px 44px; mask-image: linear-gradient(to bottom, transparent, black 15%, black 82%, transparent); }
+.morshidi-login-orb { position: absolute; z-index: -2; border-radius: 999px; filter: blur(68px); pointer-events: none; }
+.morshidi-login-orb.orb-one { top: -8rem; right: -6rem; width: 30rem; height: 30rem; background: rgba(17, 171, 144, .18); }
+.morshidi-login-orb.orb-two { bottom: -11rem; left: -8rem; width: 32rem; height: 32rem; background: rgba(48, 74, 210, .17); }
+.morshidi-login-shell { display: grid; grid-template-areas: 'card brand'; grid-template-columns: minmax(0, 1.05fr) minmax(360px, .74fr); gap: 1.7rem; width: min(100% - 2rem, 1100px); padding: 2rem 0; direction: ltr; }
+.morshidi-login-brand, .morshidi-login-card { direction: rtl; }
+.morshidi-login-brand { grid-area: brand; display: flex; min-height: 615px; flex-direction: column; padding: 2.35rem; overflow: hidden; position: relative; border: 1px solid var(--login-line); border-radius: 28px; background: linear-gradient(140deg, rgba(20, 34, 36, .96), rgba(14, 23, 24, .8)); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 28px 60px rgba(0,0,0,.24); }
+.morshidi-login-brand::after { position: absolute; top: 2.7rem; left: -4rem; width: 12rem; height: 12rem; border: 1px solid rgba(70, 255, 208, .15); border-radius: 999px; box-shadow: 0 0 0 30px rgba(70, 255, 208, .025), 0 0 0 60px rgba(70, 255, 208, .018); content: ''; }
+.morshidi-login-brand-top { display: flex; align-items: center; gap: .9rem; position: relative; z-index: 1; }
+.morshidi-login-crest { display: grid; width: 66px; height: 66px; place-items: center; overflow: hidden; border: 2px solid #e6d4a7; border-radius: 999px; background: #f4f6f3; box-shadow: 0 0 0 4px rgba(71, 230, 191, .12), 0 10px 24px rgba(0,0,0,.22); }
+.morshidi-login-crest img { width: 53px; height: 53px; object-fit: contain; }
+.morshidi-login-brand-top p { color: #fff7e8; font-size: 1.55rem; font-weight: 900; letter-spacing: -.04em; }
+.morshidi-login-brand-top span { display: block; margin-top: .05rem; color: #63f2d4; font-size: .76rem; font-weight: 800; letter-spacing: .055em; }
+.morshidi-login-status { display: inline-flex; align-items: center; align-self: flex-start; gap: .5rem; margin-top: 1.75rem; border: 1px solid rgba(54, 226, 182, .45); border-radius: 999px; padding: .52rem .8rem; color: #d2fff5; background: rgba(8, 119, 99, .22); font-size: .69rem; font-weight: 800; }
+.morshidi-login-status i { width: 8px; height: 8px; border-radius: 999px; background: #42e5b7; box-shadow: 0 0 0 4px rgba(66, 229, 183, .12); }
+.morshidi-login-intro { position: relative; z-index: 1; margin-top: 2.1rem; }
+.morshidi-login-kicker { color: #eed4a0; font-size: .77rem; font-weight: 800; }
+.morshidi-login-intro h1 { margin-top: .4rem; color: #fff8ea; font-size: clamp(2rem, 3vw, 2.85rem); font-weight: 900; line-height: 1.2; letter-spacing: -.05em; }
+.morshidi-login-intro > p:last-child { max-width: 28rem; margin-top: 1rem; color: var(--login-muted); font-size: .88rem; line-height: 1.9; }
+.morshidi-login-features { display: grid; gap: .6rem; margin-top: 2rem; }
+.morshidi-login-features > div { display: flex; align-items: center; gap: .6rem; border: 1px solid rgba(95, 150, 151, .22); border-radius: 13px; padding: .7rem .8rem; background: rgba(6, 15, 15, .24); color: #d3e7e2; font-size: .72rem; }
+.morshidi-login-features svg { width: 17px; color: #5bf1cf; flex: 0 0 auto; }
+.morshidi-login-brand footer { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-top: auto; padding-top: 1.15rem; border-top: 1px solid rgba(73, 234, 193, .25); color: #aabdb7; font-size: .68rem; }
+.morshidi-login-brand footer b { color: #e5f7ef; }
+.morshidi-login-card { grid-area: card; display: flex; min-height: 615px; flex-direction: column; padding: 2.35rem; border: 1px solid rgba(109, 149, 215, .3); border-radius: 28px; background: linear-gradient(145deg, rgba(18, 28, 39, .95), rgba(14, 20, 29, .92)); box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 28px 60px rgba(0,0,0,.28); }
+.morshidi-login-tabs { display: flex; align-items: center; gap: .5rem; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(113, 171, 218, .28); }
+.morshidi-login-tabs button { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid transparent; border-radius: 13px; padding: .7rem .85rem; color: #aebfd2; font-size: .79rem; font-weight: 800; transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease; }
+.morshidi-login-tabs button:hover { color: #fff; background: rgba(96, 127, 183, .15); }
+.morshidi-login-tabs button.active { border-color: rgba(103, 239, 206, .33); background: linear-gradient(135deg, #137e72, #126057); color: #ecfff9; box-shadow: 0 8px 18px rgba(6, 83, 76, .28); }
+.morshidi-login-tabs svg { width: 15px; color: #f2c874; }
+.morshidi-login-tabs em { display: grid; min-width: 18px; height: 18px; place-items: center; border-radius: 999px; background: rgba(211, 162, 57, .18); color: #f4d37f; font-size: .6rem; font-style: normal; }
+.morshidi-login-tabs > span { margin-inline-start: auto; border: 1px solid rgba(68, 228, 193, .36); border-radius: 999px; padding: .34rem .6rem; color: #71f2d4; background: rgba(33, 165, 139, .1); font-size: .65rem; font-weight: 800; }
+.morshidi-login-form { display: grid; gap: 1.15rem; padding-top: 2rem; }
+.morshidi-form-group { display: grid; gap: .47rem; }
+.morshidi-form-group > label, .morshidi-form-label label { color: #e9eef5; font-size: .78rem; font-weight: 800; }
+.morshidi-form-label { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.morshidi-form-label button, .morshidi-form-hint button { color: #6df3d7; font-size: .69rem; font-weight: 800; }
+.morshidi-form-label button:hover, .morshidi-form-hint button:hover { color: #d6fff5; text-decoration: underline; }
+.morshidi-input-wrap { display: flex; align-items: center; min-height: 55px; overflow: hidden; border: 1px solid rgba(115, 150, 204, .38); border-radius: 15px; background: rgba(7, 14, 22, .67); transition: border-color .18s ease, box-shadow .18s ease, background .18s ease; }
+.morshidi-input-wrap:focus-within { border-color: #66f0d2; background: rgba(12, 27, 30, .86); box-shadow: 0 0 0 3px rgba(74, 231, 196, .13); }
+.morshidi-input-wrap > svg { width: 18px; margin-right: 1rem; color: #a7b4c5; }
+.morshidi-input-wrap input { width: 100%; min-width: 0; border: 0; padding: .85rem .78rem; outline: 0; background: transparent; color: #f5f8fc; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9rem; font-weight: 700; direction: ltr; text-align: right; }
+.morshidi-input-wrap input::placeholder { color: #68788f; }
+.morshidi-password-toggle { display: grid; width: 47px; height: 47px; place-items: center; color: #a9b5c6; transition: color .18s ease, background .18s ease; }
+.morshidi-password-toggle:hover { color: #fff; background: rgba(91, 122, 181, .15); }
+.morshidi-password-toggle svg { width: 18px; }
+.morshidi-form-hint { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-top: .08rem; color: #a7b8c6; font-size: .67rem; }
+.morshidi-form-hint b { color: #67edd2; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.morshidi-login-submit { display: flex; min-height: 57px; align-items: center; justify-content: center; gap: .7rem; margin-top: .55rem; border: 1px solid rgba(108, 244, 212, .34); border-radius: 16px; background: linear-gradient(110deg, #0f887a, #12645d); box-shadow: 0 15px 25px rgba(3, 80, 70, .28); color: #fff; font-size: .89rem; font-weight: 900; transition: transform .18s ease, box-shadow .18s ease, filter .18s ease; }
+.morshidi-login-submit:hover { transform: translateY(-2px); filter: brightness(1.12); box-shadow: 0 19px 30px rgba(3, 96, 83, .37); }
+.morshidi-login-submit svg { width: 19px; transition: transform .18s ease; }
+.morshidi-login-submit:hover svg { transform: translateX(-3px); }
+.morshidi-login-error { margin-top: 1.25rem; border: 1px solid rgba(247, 129, 129, .45); border-radius: 13px; padding: .75rem .85rem; background: rgba(126, 36, 49, .22); color: #ffb7b7; font-size: .75rem; font-weight: 700; }
+.morshidi-account-directory { padding-top: 1.35rem; }
+.morshidi-directory-note { display: flex; align-items: center; justify-content: space-between; gap: .65rem; border: 1px solid rgba(91, 226, 190, .22); border-radius: 13px; padding: .75rem .8rem; background: rgba(18, 99, 86, .13); color: #cce5df; font-size: .69rem; }
+.morshidi-directory-note b { color: #7bf4d8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
+.morshidi-account-list { display: grid; gap: .2rem; max-height: 370px; margin-top: .8rem; overflow-y: auto; padding-left: .15rem; }
+.morshidi-account-list article { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem; padding: .75rem .25rem; border-bottom: 1px solid rgba(110, 139, 184, .16); }
+.morshidi-account-avatar { display: grid; width: 39px; height: 39px; place-items: center; border: 1px solid rgba(90, 223, 191, .3); border-radius: 13px 13px 13px 4px; background: linear-gradient(145deg, #215d6c, #203d74); color: #e5fffa; font-size: .8rem; font-weight: 900; }
+.morshidi-account-info { min-width: 0; }.morshidi-account-info h2 { color: #f1f5fc; font-size: .75rem; font-weight: 800; }.morshidi-account-info p { overflow: hidden; margin-top: .1rem; color: #a6b6c8; font-size: .63rem; text-overflow: ellipsis; white-space: nowrap; }.morshidi-account-info span { display: block; margin-top: .16rem; color: #67ead0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .6rem; }
+.morshidi-account-list article > button { border: 1px solid rgba(106, 238, 207, .32); border-radius: 10px; padding: .45rem .7rem; color: #b9fff0; background: rgba(20, 130, 114, .2); font-size: .68rem; font-weight: 800; transition: .18s ease; }.morshidi-account-list article > button:hover { background: #168f7e; color: #fff; }
+.morshidi-login-card-footer { margin-top: auto; padding-top: 1.15rem; border-top: 1px solid rgba(113, 162, 210, .22); color: #899aaf; text-align: center; font-size: .65rem; }
+.morshidi-login-modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 1rem; background: rgba(3, 8, 13, .7); backdrop-filter: blur(9px); }
+.morshidi-login-modal-card { width: min(100%, 385px); position: relative; display: grid; justify-items: center; gap: .75rem; border: 1px solid rgba(106, 242, 209, .28); border-radius: 23px; padding: 2rem; background: linear-gradient(150deg, #172b30, #0b1519); box-shadow: 0 28px 70px rgba(0,0,0,.48); color: #eaf8f5; text-align: center; }
+.morshidi-login-modal-card > svg { width: 34px; height: 34px; color: #68f0d2; }.morshidi-login-modal-card h2 { font-size: 1.1rem; font-weight: 900; }.morshidi-login-modal-card p { color: #b6c8c4; font-size: .78rem; line-height: 1.8; }.morshidi-login-modal-card strong { color: #fff4cf; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.45rem; letter-spacing: .12em; }.morshidi-login-modal-card > span { color: #7cebd3; font-size: .7rem; }.morshidi-login-modal-card > button:last-child { width: 100%; margin-top: .45rem; border-radius: 12px; padding: .75rem; background: #178778; color: #fff; font-size: .76rem; font-weight: 800; }.morshidi-modal-close { position: absolute; top: .75rem; left: .75rem; display: grid; width: 32px; height: 32px; place-items: center; border-radius: 10px; color: #aebdb9; }.morshidi-modal-close:hover { background: rgba(255,255,255,.08); color: #fff; }.morshidi-modal-close svg { width: 17px; }
+
+@media (max-width: 860px) { .morshidi-login-shell { grid-template-areas: 'brand' 'card'; grid-template-columns: minmax(0, 640px); width: min(100% - 1.5rem, 640px); padding: 1rem 0; }.morshidi-login-brand, .morshidi-login-card { min-height: auto; padding: 1.65rem; }.morshidi-login-brand footer { margin-top: 1.5rem; } }
+@media (max-width: 480px) { .morshidi-login-brand, .morshidi-login-card { padding: 1.3rem; border-radius: 21px; }.morshidi-login-brand-top p { font-size: 1.25rem; }.morshidi-login-crest { width: 56px; height: 56px; }.morshidi-login-crest img { width: 45px; height: 45px; }.morshidi-login-intro h1 { font-size: 1.9rem; }.morshidi-login-tabs { flex-wrap: wrap; }.morshidi-login-tabs > span { display: none; }.morshidi-login-tabs button { padding: .6rem .64rem; font-size: .7rem; }.morshidi-form-hint { align-items: flex-start; flex-direction: column; }.morshidi-login-brand footer { align-items: flex-start; flex-direction: column; } }
+
+/* Shared portal identity: refined academic midnight + emerald, applied across every internal page. */
+.legacy-portal { --portal-bg: #08110f; --portal-surface: #111d1c; --portal-surface-raised: #172825; --portal-line: rgba(88, 212, 182, .18); --portal-text: #f1f6f4; --portal-muted: #a9bcb6; background: radial-gradient(circle at 7% -7%, rgba(45, 193, 160, .18), transparent 29rem), radial-gradient(circle at 94% 12%, rgba(57, 99, 185, .13), transparent 27rem), #08110f; }
+.legacy-portal main { background: linear-gradient(135deg, rgba(13, 28, 29, .8), rgba(7, 14, 14, .86)); }
+.legacy-portal .portal-topbar { border-bottom-color: rgba(93, 227, 193, .15); background: rgba(6, 15, 14, .8); }
+.legacy-portal .portal-brand-mark { border-color: rgba(108, 241, 207, .55); background: linear-gradient(145deg, #168f7e, #285f90); box-shadow: 0 8px 18px rgba(13, 121, 106, .3); }
+.legacy-portal .portal-brand span, .legacy-portal .portal-profile span { color: #6cebd0; }
+.legacy-portal .portal-bell:hover, .legacy-portal .portal-menu-button:hover { border-color: #64ebce; background: #17433f; }
+.legacy-portal .portal-sidebar { border-left-color: rgba(94, 221, 187, .14); background: linear-gradient(180deg, rgba(12, 26, 27, .98), rgba(6, 14, 14, .99)); }
+.legacy-portal .portal-profile { border-color: rgba(93, 224, 189, .18); background: linear-gradient(145deg, rgba(24, 78, 72, .43), rgba(14, 29, 29, .25)); }
+.legacy-portal .portal-avatar { border-color: rgba(104, 239, 205, .82); background: radial-gradient(circle at 30% 22%, #83f5d8, #19776b 48%, #173a42 75%); box-shadow: 0 13px 27px rgba(7, 55, 51, .52); }
+.legacy-portal .portal-side-item:hover { border-color: rgba(104, 238, 205, .2); background: rgba(38, 111, 96, .22); }
+.legacy-portal .portal-side-item.active { border-color: rgba(111, 241, 210, .45); background: linear-gradient(90deg, #167e70, #235c92); box-shadow: 0 9px 18px rgba(12, 98, 84, .28); }
+.legacy-portal .portal-side-item.active::after { background: #f2ce7b; }
+.legacy-portal .portal-ai-quick { border-color: rgba(101, 239, 207, .55); background: linear-gradient(100deg, rgba(17, 118, 102, .25), rgba(37, 79, 123, .32)); }
+.legacy-portal .portal-ai-quick:hover, .legacy-portal .portal-ai-quick.active { border-color: #8affdf; background: linear-gradient(100deg, rgba(18, 147, 124, .37), rgba(45, 95, 150, .45)); }
+.legacy-portal .legacy-page-heading { border-color: rgba(91, 217, 187, .19); background: linear-gradient(120deg, rgba(23, 71, 65, .62), rgba(13, 29, 30, .72)); }
+.legacy-portal .legacy-page-heading::before { background: rgba(65, 207, 175, .13); }
+.legacy-portal table thead, .legacy-portal table thead tr, .legacy-portal table thead th { background: linear-gradient(90deg, #126e65, #28738c) !important; }
+.legacy-portal .legacy-primary-button, .legacy-portal .legacy-add-button { border-color: rgba(143, 244, 216, .28); background: linear-gradient(135deg, #168c7a, #286994); box-shadow: 0 8px 17px rgba(12, 113, 96, .24); }
+.legacy-portal .legacy-primary-button:hover, .legacy-portal .legacy-add-button:hover { background: linear-gradient(135deg, #1aa993, #347fb1); box-shadow: 0 11px 21px rgba(22, 143, 122, .3); }
+.legacy-portal .registration-tabs button.active, .legacy-portal .registration-tabs button:hover, .legacy-portal .plan-action-tabs button.active { background: linear-gradient(135deg, #168c7a, #286994); }
+.legacy-portal .academic-hours-summary > div::before { background: linear-gradient(#78f2d5, #268c83); }
+.legacy-portal .academic-hours-summary strong, .legacy-portal .legacy-hour-summary strong, .legacy-portal .registration-total strong { color: #93f4dc; }
