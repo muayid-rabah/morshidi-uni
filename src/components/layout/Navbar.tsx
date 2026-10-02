@@ -1,18 +1,23 @@
 import React from 'react';
-import { Menu } from 'lucide-react';
+import { Bell, Menu, Sparkles } from 'lucide-react';
+import { useStudent } from '../../context/StudentContext';
 
-interface NavbarProps {
-  onToggleSidebar: () => void;
-}
+interface NavbarProps { onToggleSidebar: () => void; }
+
+const pageTitles: Record<string, string> = {
+  dashboard: 'الرئيسية', 'student-info': 'ملف الطالب', registration: 'التسجيل الإلكتروني',
+  'offered-courses': 'الشعب المطروحة', 'add-drop': 'السحب والإضافة', 'class-schedule': 'الجدول الدراسي',
+  grades: 'العلامات', gpa: 'المعدل التراكمي', 'study-plan': 'الخطة الدراسية', absences: 'الغيابات',
+  exams: 'الامتحانات', financial: 'الأمور المالية', 'smart-assistant': 'الرسائل',
+};
 
 export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
-  return (
-    <header className="sticky top-0 z-30 h-[70px] border-b border-[#252a2d] bg-[#151718]">
-      <div className="mx-auto flex h-full max-w-[1920px] items-center justify-center px-5">
-        <button onClick={onToggleSidebar} className="rounded-lg p-2 text-[#e8ddce] hover:bg-[#252a2d]" aria-label="فتح القائمة">
-          <Menu className="h-7 w-7" />
-        </button>
-      </div>
-    </header>
-  );
+  const { activePage, activeStudent } = useStudent();
+  return <header className="portal-topbar sticky top-0 z-30">
+    <div className="portal-topbar-inner">
+      <div className="portal-brand"><div className="portal-brand-mark"><Sparkles className="h-4 w-4" /></div><div><strong>مرشدي</strong><span>بوابتك الأكاديمية الذكية</span></div></div>
+      <div className="portal-current-page"><span>بوابة الطالب</span><b>{pageTitles[activePage]}</b></div>
+      <div className="portal-top-actions"><button className="portal-bell" aria-label="الإشعارات"><Bell className="h-5 w-5" /><i /></button><div className="portal-mini-user"><span>{activeStudent.name.split(' ')[0]}</span><small>{activeStudent.universityId}</small></div><button onClick={onToggleSidebar} className="portal-menu-button" aria-label="فتح القائمة"><Menu className="h-5 w-5" /></button></div>
+    </div>
+  </header>;
 };
