@@ -282,6 +282,22 @@
 .legacy-portal .danger-button { background: #245398; }
 .legacy-portal .danger-button:hover { background: #9f2424; }
 
+.legacy-portal .study-plan-legacy { display: grid; gap: 1rem; }
+.legacy-portal .plan-action-tabs { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.55rem; }
+.legacy-portal .plan-action-tabs button { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 5px; background: #245398; padding: 0.45rem 0.65rem; color: #fff; font-size: 0.72rem; font-weight: 700; opacity: .78; }
+.legacy-portal .plan-action-tabs button.active { opacity: 1; }
+.legacy-portal .plan-student-line { border-bottom: 1px solid #245398; padding-bottom: 0.75rem; color: #d4c4b2; font-size: 0.76rem; }
+.legacy-portal .plan-student-line strong { color: #79acff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.legacy-portal .plan-group-table { display: grid; gap: 0.55rem; }
+.legacy-portal .plan-group-table h2 { color: #d9c8b5; font-size: 0.9rem; font-weight: 800; }
+.legacy-portal .plan-group-table h2 span { color: #79acff; }
+.legacy-portal .plan-hours-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; }
+.legacy-portal .plan-hours-row span { background: #171a1b; padding: 0.42rem 0.6rem; color: #c6b7a6; font-size: 0.68rem; text-align: center; }
+.legacy-portal .plan-hours-row b { color: #79acff; }
+.legacy-portal .plan-group-table .legacy-table { min-width: 640px; font-size: 0.7rem; }
+.legacy-portal .plan-group-table .legacy-table td,
+.legacy-portal .plan-group-table .legacy-table th { padding: 0.45rem 0.6rem; }
+
 @media (max-width: 640px) {
   .legacy-portal .legacy-page-heading { align-items: stretch; flex-direction: column; }
   .legacy-portal .legacy-open-status { align-self: flex-start; }
