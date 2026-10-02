@@ -1,18 +1,16 @@
 import React from 'react';
 import { useStudent } from '../../context/StudentContext';
 import { Sparkles, ExternalLink } from 'lucide-react';
+import { openMorshidi } from '../../services/morshidiLink';
 
 export const FloatingAssistant: React.FC = () => {
-  const { setActivePage, activePage } = useStudent();
-  const morshidiUrl = 'https://morshidi.vercel.app/';
+  const { activeStudent } = useStudent();
 
   // If already on the smart assistant page, don't show floating button
-  if (activePage === 'smart-assistant') return null;
-
   return (
     <div className="fixed bottom-6 right-6 z-40 text-right font-arabic">
       <button
-        onClick={() => setActivePage('smart-assistant')}
+        onClick={() => openMorshidi(activeStudent)}
         className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-white text-univ-900 font-bold text-xs sm:text-sm shadow-elevated hover:shadow-soft-lg hover:scale-105 transition-all group border border-univ-200"
         title="فتح مرشدي الذكي"
       >
