@@ -109,17 +109,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         } lg:static lg:z-10`}
       >
         {/* Sidebar Header with Student Card */}
-        <div className="p-5 border-b border-[#353b3f] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-univ-900 text-white flex items-center justify-center font-bold text-base shadow-soft">
+        <div className="p-5 border-b border-[#353b3f] text-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex h-28 w-28 items-center justify-center rounded-xl border-2 border-[#245398] bg-[#2a3033] text-4xl font-bold text-[#63a5ff] shadow-soft">
               {activeStudent.name.charAt(0)}
             </div>
-            <div className="flex flex-col text-right">
-              <span className="text-sm font-bold text-[#f0e4d3] line-clamp-1">
+            <div className="flex flex-col">
+              <span className="text-base font-bold text-[#f0e4d3] line-clamp-1">
                 {activeStudent.name}
               </span>
-              <span className="text-xs text-univ-700 font-mono font-medium">
-                {activeStudent.universityId}
+              <span className="text-sm text-[#63a5ff] font-medium">
+                {activeStudent.major}
               </span>
             </div>
           </div>
@@ -133,17 +133,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Major & Advisor Badge */}
-        <div className="px-4 py-3 bg-[#202426] border-b border-[#353b3f] flex flex-col gap-1 text-right">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[#c6b7a6]">التخصص:</span>
-            <span className="font-semibold text-[#63a5ff]">{activeStudent.major}</span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[#c6b7a6]">المرشد الأكاديمي:</span>
-            <span className="font-medium text-[#f0e4d3]">{activeStudent.academicAdvisor}</span>
-          </div>
-        </div>
-
         {/* Navigation Items List */}
         <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
           {navItems.map(item => {
