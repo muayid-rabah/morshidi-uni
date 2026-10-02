@@ -3,7 +3,6 @@ import { useStudent } from './context/StudentContext';
 import { LoginView } from './components/auth/LoginView';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
-import { ServiceRail } from './components/layout/ServiceRail';
 import { ToastContainer } from './components/common/ToastContainer';
 import { FloatingAssistant } from './components/portal/FloatingAssistant';
 
@@ -22,16 +21,8 @@ import { ExamsView } from './components/portal/ExamsView';
 import { FinancialView } from './components/portal/FinancialView';
 import { MorshidiAssistantView } from './components/portal/MorshidiAssistantView';
 
-import {
-  GraduationCap,
-  Sparkles,
-  User,
-  ShieldCheck,
-  ChevronLeft
-} from 'lucide-react';
-
 export const App: React.FC = () => {
-  const { isAuthenticated, activePage, activeStudent } = useStudent();
+  const { isAuthenticated, activePage } = useStudent();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // If not authenticated, show login page
@@ -94,49 +85,13 @@ export const App: React.FC = () => {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 p-5 sm:p-7 lg:p-9 min-w-0 max-w-full overflow-hidden">
-          
-          {/* ==================================================
-              SECTION 23: HOMEPAGE / PORTAL HEADER
-              At the top of the portal show:
-              جامعة مرشدي
-              Morshidi University
-              بوابة الطالب
-              Student card:
-              اسم الطالب | الرقم الجامعي | التخصص | المرشد الأكاديمي
-              ================================================== */}
-          {/* Sleek Top Student Identity Strip */}
-          <div className="mb-6 px-5 py-3 rounded-lg border border-slate-200/80 shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3 text-right">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-univ-800 to-forest-800 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
-                {activeStudent.name.charAt(0)}
-              </div>
-              <div className="flex items-center gap-2 flex-wrap text-xs">
-                <span className="font-extrabold text-slate-900">{activeStudent.name}</span>
-                <span className="text-slate-300">•</span>
-                <span className="font-mono font-bold text-univ-800 bg-univ-50 px-2 py-0.5 rounded-lg border border-univ-200">
-                  {activeStudent.universityId}
-                </span>
-                <span className="text-slate-300">•</span>
-                <span className="text-slate-600 font-medium">{activeStudent.major}</span>
-                <span className="text-slate-300">•</span>
-                <span className="text-slate-500">{activeStudent.studyPlan}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-slate-500 self-start md:self-auto">
-              <span>المرشد الأكاديمي:</span>
-              <strong className="text-slate-800 font-semibold">{activeStudent.academicAdvisor}</strong>
-            </div>
-          </div>
-
+        <main className="flex-1 p-4 sm:p-6 lg:p-7 min-w-0 max-w-full overflow-hidden">
           {/* Active View Container */}
           <div className="min-w-0">
             {renderActiveView()}
           </div>
 
         </main>
-        <ServiceRail />
       </div>
 
       {/* Global Floating Assistant */}
