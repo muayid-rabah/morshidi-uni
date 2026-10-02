@@ -104,18 +104,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar Drawer */}
       <aside
-        className={`fixed top-0 right-0 z-40 h-full w-72 bg-white border-l border-slate-200/80 shadow-soft-lg flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 right-0 z-40 h-full w-72 bg-[#191c1d] border-l border-[#353b3f] shadow-soft-lg flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         } lg:static lg:z-10`}
       >
         {/* Sidebar Header with Student Card */}
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-5 border-b border-[#353b3f] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-univ-900 text-white flex items-center justify-center font-bold text-base shadow-soft">
               {activeStudent.name.charAt(0)}
             </div>
             <div className="flex flex-col text-right">
-              <span className="text-sm font-bold text-slate-800 line-clamp-1">
+              <span className="text-sm font-bold text-[#f0e4d3] line-clamp-1">
                 {activeStudent.name}
               </span>
               <span className="text-xs text-univ-700 font-mono font-medium">
@@ -133,14 +133,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Major & Advisor Badge */}
-        <div className="px-4 py-2.5 bg-univ-50/50 border-b border-univ-100/60 flex flex-col gap-1 text-right">
+        <div className="px-4 py-3 bg-[#202426] border-b border-[#353b3f] flex flex-col gap-1 text-right">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500">التخصص:</span>
-            <span className="font-semibold text-univ-950">{activeStudent.major}</span>
+            <span className="text-[#c6b7a6]">التخصص:</span>
+            <span className="font-semibold text-[#63a5ff]">{activeStudent.major}</span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500">المرشد الأكاديمي:</span>
-            <span className="font-medium text-slate-700">{activeStudent.academicAdvisor}</span>
+            <span className="text-[#c6b7a6]">المرشد الأكاديمي:</span>
+            <span className="font-medium text-[#f0e4d3]">{activeStudent.academicAdvisor}</span>
           </div>
         </div>
 
@@ -156,14 +156,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 onClick={() => handleNavClick(item.id)}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all group ${
                   isActive
-                    ? 'bg-univ-50 text-univ-900 ring-1 ring-univ-200 shadow-xs font-semibold'
-                    : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
+                    ? 'bg-[#245398] text-white shadow-xs font-semibold'
+                    : 'text-[#c6b7a6] hover:bg-[#24292b] hover:text-[#f0e4d3]'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon
                     className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
-                      isActive ? 'text-univ-800' : 'text-slate-400 group-hover:text-univ-700'
+                      isActive ? 'text-white' : 'text-[#9da5a7] group-hover:text-[#63a5ff]'
                     }`}
                   />
                   <span>{item.label}</span>
@@ -197,7 +197,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         )}
 
         {/* Logout action */}
-        <div className="p-3 border-t border-slate-100">
+        <div className="p-3 border-t border-[#353b3f]">
           <button
             onClick={logout}
             className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-rose-700 hover:bg-rose-50 hover:text-rose-800 transition-colors"

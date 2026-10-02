@@ -58,6 +58,115 @@
   }
 }
 
+/* Legacy academic portal shell — dark, high-contrast, information-first. */
+.legacy-portal {
+  --portal-bg: #1c1f20;
+  --portal-surface: #222628;
+  --portal-surface-raised: #282d30;
+  --portal-line: #3a4145;
+  --portal-text: #f0e4d3;
+  --portal-muted: #c6b7a6;
+  background: var(--portal-bg);
+  color: var(--portal-text);
+}
+
+.legacy-portal .bg-white,
+.legacy-portal [class*="bg-white/"] {
+  background-color: var(--portal-surface) !important;
+}
+
+.legacy-portal .bg-slate-50,
+.legacy-portal [class*="bg-slate-50"],
+.legacy-portal .bg-slate-100,
+.legacy-portal [class*="bg-slate-100"] {
+  background-color: #1a1d1e !important;
+}
+
+.legacy-portal .border-slate-100,
+.legacy-portal .border-slate-200,
+.legacy-portal [class*="border-slate-200"],
+.legacy-portal [class*="border-slate-100"] {
+  border-color: var(--portal-line) !important;
+}
+
+.legacy-portal .text-slate-950,
+.legacy-portal .text-slate-900,
+.legacy-portal .text-slate-800,
+.legacy-portal .text-slate-700 {
+  color: var(--portal-text) !important;
+}
+
+.legacy-portal .text-slate-600,
+.legacy-portal .text-slate-500,
+.legacy-portal .text-slate-400 {
+  color: var(--portal-muted) !important;
+}
+
+.legacy-portal input,
+.legacy-portal select {
+  color: var(--portal-text);
+  background-color: #1a1d1e !important;
+  border-color: #3e70af !important;
+}
+
+.legacy-portal table thead,
+.legacy-portal table thead tr,
+.legacy-portal table thead th {
+  background: #245398 !important;
+  color: #fff !important;
+  border-color: #1d4178 !important;
+}
+
+.legacy-portal table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.legacy-portal table tbody tr:hover {
+  background: rgba(54, 121, 230, 0.13) !important;
+}
+
+.legacy-portal .shadow-soft,
+.legacy-portal .shadow-soft-lg,
+.legacy-portal .shadow-elevated {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+}
+
+.legacy-portal .portal-field {
+  display: flex;
+  min-height: 72px;
+  overflow: hidden;
+  border: 1px solid var(--portal-line);
+  border-radius: 7px;
+  background: #181b1c;
+}
+
+.legacy-portal .portal-field-icon {
+  display: flex;
+  width: 58px;
+  align-items: center;
+  justify-content: center;
+  background: #245398;
+  color: #fff;
+}
+
+.legacy-portal .portal-field-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 15px;
+}
+
+.legacy-portal .portal-field-label { color: #d4c4b2; font-size: 0.75rem; }
+.legacy-portal .portal-field-value { color: #f5ecdf; font-size: 0.9rem; font-weight: 700; overflow-wrap: anywhere; }
+
+.legacy-portal .portal-panel-title {
+  border-bottom: 1px solid #245398;
+  color: #f0e4d3;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }

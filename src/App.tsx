@@ -78,7 +78,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 flex flex-col font-arabic">
+    <div className="legacy-portal min-h-screen flex flex-col font-arabic">
       
       {/* Top Navbar */}
       <Navbar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
@@ -105,7 +105,7 @@ export const App: React.FC = () => {
               اسم الطالب | الرقم الجامعي | التخصص | المرشد الأكاديمي
               ================================================== */}
           {/* Sleek Top Student Identity Strip */}
-          <div className="mb-6 px-5 py-3 rounded-2xl bg-white border border-slate-200/80 shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3 text-right">
+          <div className="mb-6 px-5 py-3 rounded-lg border border-slate-200/80 shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3 text-right">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-univ-800 to-forest-800 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
                 {activeStudent.name.charAt(0)}
@@ -144,7 +144,7 @@ export const App: React.FC = () => {
       <ToastContainer />
 
       {/* Modern Academic Portal Footer */}
-      <footer className="mt-auto border-t border-slate-200/80 bg-white/70 py-6 text-center text-xs text-slate-500">
+      <footer className="mt-auto border-t border-slate-200/80 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 font-medium">
             <span>© {new Date().getFullYear()} جامعة مرشدي (Morshidi University)</span>

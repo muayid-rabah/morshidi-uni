@@ -13,11 +13,28 @@ import {
   ShieldCheck,
   CheckCircle2,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  MapPin,
+  Contact,
+  HeartPulse
 } from 'lucide-react';
 
 export const StudentInfoView: React.FC = () => {
   const { activeStudent } = useStudent();
+  const officialFields = [
+    { label: 'الاسم الكامل', value: activeStudent.name, icon: User },
+    { label: 'الرقم الجامعي', value: activeStudent.universityId, icon: IdCard, mono: true },
+    { label: 'الكلية', value: activeStudent.faculty, icon: Building2 },
+    { label: 'التخصص', value: activeStudent.major, icon: BookOpen },
+    { label: 'الدرجة العلمية', value: activeStudent.degree, icon: GraduationCap },
+    { label: 'نوع الدراسة', value: activeStudent.studyType, icon: Calendar },
+    { label: 'سنة القبول', value: String(activeStudent.admissionYear), icon: Calendar, mono: true },
+    { label: 'الخطة الدراسية', value: `${activeStudent.studyPlan} — 132 ساعة معتمدة`, icon: Award },
+    { label: 'الحالة الأكاديمية', value: activeStudent.academicStatus, icon: HeartPulse },
+    { label: 'المرشد الأكاديمي', value: activeStudent.academicAdvisor, icon: Contact },
+    { label: 'البريد الجامعي', value: `${activeStudent.universityId}@std.morshidi.edu.jo`, icon: Mail, mono: true },
+    { label: 'هاتف التواصل', value: '+962 7 9123 4567', icon: Phone, mono: true },
+  ];
 
   return (
     <div className="space-y-6 animate-fade-in text-right">
@@ -118,91 +135,34 @@ export const StudentInfoView: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Detailed Official Information Fields */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-soft">
-          <h2 className="text-base font-bold text-slate-900 pb-3 border-b border-slate-100 mb-6">
-            البيانات الأكاديمية والشخصية الرسمية
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            
-            {/* اسم الطالب */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">اسم الطالب الرباعي</span>
-              <span className="text-sm font-bold text-slate-900">{activeStudent.name}</span>
+        {/* Detailed official fields in the legacy portal format */}
+        <div className="lg:col-span-7 rounded-lg p-5 sm:p-6 border border-slate-200/80 shadow-soft">
+          <div className="portal-panel-title mb-5 flex items-center justify-between pb-3">
+            <div>
+              <h2 className="text-lg font-bold">معلومات الطالب</h2>
+              <p className="mt-1 text-xs text-slate-500">البيانات الرسمية والأكاديمية المسجلة في النظام</p>
             </div>
-
-            {/* الرقم الجامعي */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">الرقم الجامعي</span>
-              <span className="text-sm font-bold text-univ-800 font-mono">{activeStudent.universityId}</span>
-            </div>
-
-            {/* الكلية */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">الكلية</span>
-              <span className="text-sm font-bold text-slate-900">{activeStudent.faculty}</span>
-            </div>
-
-            {/* التخصص */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">التخصص الأكاديمي</span>
-              <span className="text-sm font-bold text-slate-900">{activeStudent.major}</span>
-            </div>
-
-            {/* الدرجة العلمية */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">الدرجة العلمية</span>
-              <span className="text-sm font-bold text-slate-900">{activeStudent.degree}</span>
-            </div>
-
-            {/* نوع الدراسة */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">نوع الدراسة</span>
-              <span className="text-sm font-bold text-slate-900">{activeStudent.studyType}</span>
-            </div>
-
-            {/* سنة القبول */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">سنة القبول</span>
-              <span className="text-sm font-bold text-slate-900 font-mono">{activeStudent.admissionYear}</span>
-            </div>
-
-            {/* الخطة الدراسية */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">الخطة الدراسية</span>
-              <span className="text-sm font-bold text-slate-900">{activeStudent.studyPlan} (132 ساعة معتمدة)</span>
-            </div>
-
-            {/* المرشد الأكاديمي */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">المرشد الأكاديمي</span>
-              <span className="text-sm font-bold text-slate-900">{activeStudent.academicAdvisor}</span>
-            </div>
-
-            {/* الحالة الأكاديمية */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70">
-              <span className="text-xs text-slate-500 block mb-1">الحالة الأكاديمية</span>
-              <span className="text-sm font-bold text-emerald-700">{activeStudent.academicStatus}</span>
-            </div>
-
+            <span className="rounded bg-univ-800 px-2.5 py-1 text-[11px] font-bold text-white">ملف نشط</span>
           </div>
 
-          {/* Contact Details */}
-          <div className="mt-6 pt-5 border-t border-slate-100">
-            <h3 className="text-xs font-bold text-slate-800 mb-3">بيانات الاتصال والحساب الجامعي</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-univ-700 shrink-0" />
-                <span>البريد الجامعي: <span className="font-mono text-slate-800">{activeStudent.universityId}@std.morshidi.edu.jo</span></span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-univ-700 shrink-0" />
-                <span>الهاتف المعتمد: <span className="font-mono text-slate-800 dir-ltr">+962 7 9123 4567</span></span>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {officialFields.map(field => {
+              const Icon = field.icon;
+              return (
+                <div key={field.label} className="portal-field">
+                  <div className="portal-field-icon"><Icon className="h-5 w-5" aria-hidden="true" /></div>
+                  <div className="portal-field-copy">
+                    <span className="portal-field-label">{field.label}</span>
+                    <span className={`portal-field-value ${field.mono ? 'font-mono' : ''}`}>{field.value}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
+          <div className="mt-5 rounded-lg border border-[#765c22] bg-[#342a0d] px-4 py-3 text-xs text-[#f0d58a]">
+            البيانات أعلاه مقيدة من عمادة القبول والتسجيل. لطلب التعديل، راجع القسم المختص وأحضر الوثائق الداعمة.
+          </div>
         </div>
 
       </div>

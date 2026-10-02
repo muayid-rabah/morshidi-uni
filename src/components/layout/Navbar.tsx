@@ -54,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
   ];
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+    <header className="sticky top-0 z-30 bg-[#171a1b]/95 backdrop-blur-md border-b border-[#353b3f] shadow-xs">
       <div className="px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
         
         {/* Right side: Mobile Menu + University Brand */}
