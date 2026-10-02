@@ -16,6 +16,7 @@ export type NavigationPage =
   | 'absences'
   | 'exams'
   | 'financial'
+  | 'notifications'
   | 'smart-assistant';
 
 export interface ToastMessage {

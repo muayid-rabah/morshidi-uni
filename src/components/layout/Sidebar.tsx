@@ -1,35 +1,26 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStudent, NavigationPage } from '../../context/StudentContext';
-import { BookOpen, CalendarDays, CalendarRange, ChevronDown, FileCheck2, FileText, GraduationCap, LayoutDashboard, LogOut, MessagesSquare, ReceiptText, Sparkles, UserCheck, UserX, X } from 'lucide-react';
+import { Bell, CalendarRange, FileCheck2, FileText, GraduationCap, LayoutDashboard, LogOut, ReceiptText, Sparkles, UserCheck, X } from 'lucide-react';
 
 interface SidebarProps { isOpen: boolean; onClose: () => void; }
 interface NavItem { id: NavigationPage; label: string; icon: React.ComponentType<{ className?: string }>; badge?: string | number; }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { activePage, setActivePage, activeStudent, logout, basketSections } = useStudent();
-  const [moreOpen, setMoreOpen] = useState(false);
   const mainItems: NavItem[] = [
+    { id: 'dashboard', label: 'الشاشة الرئيسية', icon: LayoutDashboard },
     { id: 'student-info', label: 'معلومات الطالب', icon: UserCheck },
-    { id: 'smart-assistant', label: 'الرسائل', icon: MessagesSquare, badge: 5 },
+    { id: 'notifications', label: 'الإشعارات', icon: Bell, badge: 5 },
     { id: 'class-schedule', label: 'الجدول الدراسي', icon: CalendarRange },
     { id: 'exams', label: 'الامتحانات', icon: FileCheck2 },
     { id: 'registration', label: 'التسجيل الإلكتروني', icon: ReceiptText, badge: basketSections.length || undefined },
     { id: 'study-plan', label: 'الخطة الدراسية', icon: GraduationCap },
     { id: 'grades', label: 'العلامات', icon: FileText },
-    { id: 'gpa', label: 'العلامات التفصيلية', icon: Sparkles },
-  ];
-  const moreItems: NavItem[] = [
-    { id: 'offered-courses', label: 'الشعب المطروحة', icon: BookOpen },
-    { id: 'add-drop', label: 'السحب والإضافة', icon: CalendarDays },
-    { id: 'absences', label: 'الغيابات', icon: UserX },
-    { id: 'financial', label: 'الأمور المالية', icon: ReceiptText },
-    { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard },
   ];
   const openPage = (page: NavigationPage) => { setActivePage(page); onClose(); };
   const renderItem = (item: NavItem) => {
     const Icon = item.icon;
-    const active = activePage === item.id;
-    return <button key={item.id} onClick={() => openPage(item.id)} className={`portal-side-item ${active ? 'active' : ''}`}><span><Icon className="h-4 w-4" aria-hidden="true" />{item.label}</span>{item.badge && <b>{item.badge}</b>}</button>;
+    return <button key={item.id} onClick={() => openPage(item.id)} className={`portal-side-item ${activePage === item.id ? 'active' : ''}`}><span><Icon className="h-4 w-4" aria-hidden="true" />{item.label}</span>{item.badge && <b>{item.badge}</b>}</button>;
   };
   return <>
     {isOpen && <div onClick={onClose} className="fixed inset-0 z-40 bg-slate-900/50 lg:hidden" />}
@@ -39,11 +30,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <strong>{activeStudent.name}</strong><span>{activeStudent.major}</span>
         <button onClick={onClose} className="portal-close lg:hidden" aria-label="إغلاق القائمة"><X className="h-5 w-5" /></button>
       </div>
-      <nav className="portal-side-nav">{mainItems.map(renderItem)}
-        <button className="portal-side-item more" onClick={() => setMoreOpen(value => !value)} aria-expanded={moreOpen}><span><ChevronDown className={`h-4 w-4 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />المزيد</span></button>
-        {moreOpen && <div className="portal-more-items">{moreItems.map(renderItem)}</div>}
-      </nav>
-      <div className="portal-logout"><button onClick={logout} className="portal-side-item"><span><LogOut className="h-4 w-4" />تسجيل الخروج</span></button></div>
+      <nav className="portal-side-nav" aria-label="التنقل الرئيسي">{mainItems.map(renderItem)}</nav>
+      <div className="portal-sidebar-bottom">
+        <button onClick={() => openPage('smart-assistant')} className={`portal-ai-quick ${activePage === 'smart-assistant' ? 'active' : ''}`}><span><Sparkles className="h-4 w-4" />مرشدي الذكي</span><em>AI</em></button>
+        <div className="portal-logout"><button onClick={logout} className="portal-side-item"><span><LogOut className="h-4 w-4" />تسجيل الخروج</span></button></div>
+      </div>
     </aside>
   </>;
 };

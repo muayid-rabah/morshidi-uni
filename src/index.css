@@ -453,3 +453,57 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Final navigation and notification polish. */
+.legacy-portal button:focus-visible,
+.legacy-portal a:focus-visible,
+.legacy-portal select:focus-visible,
+.legacy-portal input:focus-visible { outline: 2px solid #8ff0dc; outline-offset: 3px; }
+.legacy-portal .portal-side-item { transition: transform .18s ease, border-color .18s ease, background-color .18s ease, color .18s ease, box-shadow .18s ease; }
+.legacy-portal .portal-side-item:hover { transform: translateX(-2px); }
+.legacy-portal .portal-side-nav { padding-bottom: .8rem; }
+.legacy-portal .portal-sidebar-bottom { padding: .2rem .75rem .75rem; }
+.legacy-portal .portal-ai-quick { display: flex; width: 100%; align-items: center; justify-content: space-between; border: 1px solid rgba(71, 225, 194, .5); border-radius: 999px; padding: .62rem .78rem; color: #dffdf6; background: linear-gradient(100deg, rgba(17, 115, 139, .18), rgba(70, 64, 176, .3)); box-shadow: inset 0 1px rgba(255,255,255,.06), 0 10px 24px rgba(3, 9, 26, .2); font-size: .76rem; font-weight: 800; transition: .2s ease; }
+.legacy-portal .portal-ai-quick > span { display: flex; align-items: center; gap: .48rem; }
+.legacy-portal .portal-ai-quick em { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 8px; color: #92ffec; background: rgba(55, 211, 185, .16); font-size: .62rem; font-style: normal; }
+.legacy-portal .portal-ai-quick:hover,
+.legacy-portal .portal-ai-quick.active { transform: translateY(-1px); border-color: #8ff0dc; background: linear-gradient(100deg, rgba(18, 143, 157, .32), rgba(91, 73, 215, .42)); }
+.legacy-portal .portal-sidebar-bottom .portal-logout { margin: .62rem 0 0; }
+
+.legacy-portal .notifications-page { width: min(100%, 940px); margin: 0 auto; display: grid; gap: .9rem; padding: .2rem 0 1.5rem; }
+.legacy-portal .notifications-hero { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; padding: 1.3rem; overflow: hidden; position: relative; border: 1px solid rgba(129, 161, 242, .2); border-radius: 20px; background: linear-gradient(120deg, rgba(32, 57, 117, .7), rgba(13, 23, 42, .88) 56%, rgba(32, 77, 103, .46)); box-shadow: inset 0 1px rgba(255,255,255,.06), 0 18px 38px rgba(0,0,0,.16); }
+.legacy-portal .notifications-hero::after { position: absolute; left: -40px; bottom: -65px; width: 190px; height: 190px; border-radius: 999px; background: rgba(64, 154, 255, .14); filter: blur(14px); content: ''; }
+.legacy-portal .notifications-hero-icon { z-index: 1; display: grid; width: 54px; height: 54px; place-items: center; border: 1px solid rgba(177, 204, 255, .42); border-radius: 18px 18px 18px 5px; background: linear-gradient(145deg, #4e7dec, #714cda); box-shadow: 0 12px 24px rgba(30, 56, 151, .36); color: #fff; }
+.legacy-portal .notifications-hero > div:nth-child(2) { z-index: 1; }
+.legacy-portal .notifications-hero p { color: #93a8cc; font-size: .7rem; font-weight: 700; }
+.legacy-portal .notifications-hero h1 { margin-top: .1rem; color: #f4f7ff; font-size: 1.55rem; font-weight: 900; letter-spacing: -.035em; }
+.legacy-portal .notifications-hero span { display: block; margin-top: .26rem; color: #c2cde2; font-size: .8rem; }
+.legacy-portal .notifications-read-button { z-index: 1; display: inline-flex; align-items: center; gap: .42rem; border: 1px solid rgba(151, 185, 255, .32); border-radius: 11px; padding: .58rem .75rem; background: rgba(6, 13, 29, .45); color: #e2eaff; font-size: .72rem; font-weight: 800; transition: .2s ease; }
+.legacy-portal .notifications-read-button:hover:not(:disabled) { transform: translateY(-1px); border-color: #8ff0dc; color: #8ff0dc; }
+.legacy-portal .notifications-read-button:disabled { cursor: default; opacity: .5; }
+.legacy-portal .notifications-summary { display: flex; align-items: center; justify-content: space-between; gap: .7rem; padding: .05rem .35rem; color: #9eaecc; font-size: .73rem; }
+.legacy-portal .notifications-summary b { color: #8ff0dc; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.legacy-portal .notifications-summary small { color: #71819e; font-size: .66rem; }
+.legacy-portal .notifications-list { display: grid; gap: .58rem; }
+.legacy-portal .notification-card { display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: .85rem; padding: 1rem 1.05rem; border: 1px solid rgba(131, 158, 211, .16); border-radius: 16px; background: linear-gradient(115deg, rgba(19, 31, 56, .9), rgba(12, 19, 34, .86)); box-shadow: inset 0 1px rgba(255,255,255,.025); transition: transform .18s ease, border-color .18s ease, background .18s ease; }
+.legacy-portal .notification-card:hover { transform: translateY(-2px); border-color: rgba(130, 164, 250, .38); background: linear-gradient(115deg, rgba(26, 42, 77, .94), rgba(13, 22, 41, .9)); }
+.legacy-portal .notification-card.unread { border-color: rgba(112, 157, 255, .32); }
+.legacy-portal .notification-icon { display: grid; width: 39px; height: 39px; place-items: center; border-radius: 13px; color: #bdd3ff; background: rgba(77, 122, 235, .17); }
+.legacy-portal .notification-icon.important { color: #ffcf7c; background: rgba(245, 161, 43, .13); }
+.legacy-portal .notification-icon.academic { color: #9dc7ff; background: rgba(66, 126, 245, .16); }
+.legacy-portal .notification-icon.general { color: #90ecdc; background: rgba(49, 190, 166, .13); }
+.legacy-portal .notification-copy { min-width: 0; }
+.legacy-portal .notification-meta { display: flex; align-items: center; justify-content: space-between; gap: .8rem; color: #8294b5; font-size: .64rem; }
+.legacy-portal .notification-meta span { color: #8fb0f5; font-weight: 800; }
+.legacy-portal .notification-copy h2 { margin-top: .2rem; color: #eff4ff; font-size: .88rem; font-weight: 800; }
+.legacy-portal .notification-copy p { margin-top: .3rem; color: #aab8d0; font-size: .74rem; line-height: 1.75; }
+.legacy-portal .notification-card > i { width: 8px; height: 8px; margin-top: .3rem; border-radius: 999px; background: #71dccc; box-shadow: 0 0 0 4px rgba(113, 220, 204, .1); }
+.legacy-portal .notifications-footer { display: flex; align-items: center; justify-content: center; gap: .42rem; padding: .75rem; border: 1px dashed rgba(114, 154, 236, .26); border-radius: 13px; color: #8d9cb8; font-size: .72rem; }
+
+@media (max-width: 640px) {
+  .legacy-portal .notifications-hero { grid-template-columns: auto 1fr; padding: 1rem; }
+  .legacy-portal .notifications-read-button { grid-column: 1 / -1; justify-content: center; }
+  .legacy-portal .notifications-summary { align-items: flex-start; flex-direction: column; }
+  .legacy-portal .notification-card { padding: .85rem; }
+  .legacy-portal .notification-meta { align-items: flex-start; flex-direction: column; gap: .15rem; }
+}

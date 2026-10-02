@@ -20,6 +20,7 @@ import { AbsencesView } from './components/portal/AbsencesView';
 import { ExamsView } from './components/portal/ExamsView';
 import { FinancialView } from './components/portal/FinancialView';
 import { MorshidiAssistantView } from './components/portal/MorshidiAssistantView';
+import { NotificationsView } from './components/portal/NotificationsView';
 
 export const App: React.FC = () => {
   const { isAuthenticated, activePage } = useStudent();
@@ -62,6 +63,8 @@ export const App: React.FC = () => {
         return <ExamsView />;
       case 'financial':
         return <FinancialView />;
+      case 'notifications':
+        return <NotificationsView />;
       case 'smart-assistant':
         return <MorshidiAssistantView />;
       default:
