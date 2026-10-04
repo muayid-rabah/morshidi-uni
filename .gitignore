@@ -13,6 +13,16 @@ dist
 dist-ssr
 *.local
 
+# Environment variables and secrets
+.env*
+!.env.example
+
+# Python artifacts (API/server tooling)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
 # Editor and history directories
 .vscode/*
 !.vscode/extensions.json
