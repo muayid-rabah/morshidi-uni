@@ -4,7 +4,9 @@ const vm = require('vm');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DATA_DIR = path.join(ROOT_DIR, 'src', 'data');
-const OUT_DIR = path.join(ROOT_DIR, 'public', 'api', 'v1');
+// Generated contracts are private bootstrap fixtures for the University API.
+// They are imported into SQLite on first start and must never ship as public assets.
+const OUT_DIR = path.join(ROOT_DIR, 'server', 'seed-data');
 
 if (!fs.existsSync(OUT_DIR)) {
   fs.mkdirSync(OUT_DIR, { recursive: true });

@@ -21,8 +21,8 @@ import {
 } from 'lucide-react';
 
 export const DashboardView: React.FC = () => {
-  const { activeStudent, setActivePage } = useStudent();
-  const progress = calculateStudentProgress(activeStudent);
+  const { activeStudent, setActivePage, courses } = useStudent();
+  const progress = calculateStudentProgress(activeStudent, courses);
 
   // Latest semester GPA and cumulative GPA (Out of 100%)
   const latestSemester = activeStudent.semesterHistory[activeStudent.semesterHistory.length - 1];

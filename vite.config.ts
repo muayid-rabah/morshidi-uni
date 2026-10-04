@@ -13,5 +13,9 @@ export default defineConfig({
   server: {
     port: 3000,
     open: false,
+    proxy: {
+      '/v1': 'http://127.0.0.1:3001',
+      '/healthz': 'http://127.0.0.1:3001',
+    },
   },
 });

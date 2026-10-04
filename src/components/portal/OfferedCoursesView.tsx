@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { offeredCourseSections } from '../../data/offeredSections';
+import { useStudent } from '../../context/StudentContext';
 import { CourseSection } from '../../types/student';
 import { StatusBadge } from '../common/StatusBadge';
 import {
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export const OfferedCoursesView: React.FC = () => {
+  const { offeredSections: liveSections, calendar } = useStudent();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInstructor, setSelectedInstructor] = useState('ALL');
   const [selectedDay, setSelectedDay] = useState('ALL');
@@ -22,13 +23,13 @@ export const OfferedCoursesView: React.FC = () => {
 
   // Extract unique instructors
   const instructors = useMemo(() => {
-    const list = Array.from(new Set(offeredCourseSections.map(s => s.instructor)));
+    const list = Array.from(new Set(liveSections.map(s => s.instructor)));
     return list.sort();
-  }, []);
+  }, [liveSections]);
 
   // Filter sections
   const filteredSections = useMemo(() => {
-    return offeredCourseSections.filter(section => {
+    return liveSections.filter(section => {
       // Search
       const matchesSearch =
         section.courseCode.includes(searchQuery.trim()) ||
@@ -59,7 +60,7 @@ export const OfferedCoursesView: React.FC = () => {
 
       return true;
     });
-  }, [searchQuery, selectedInstructor, selectedDay, onlyAvailable]);
+  }, [searchQuery, selectedInstructor, selectedDay, onlyAvailable, liveSections]);
 
   return (
     <div className="space-y-6 animate-fade-in text-right">
@@ -78,7 +79,7 @@ export const OfferedCoursesView: React.FC = () => {
 
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-xs">
           <span>إجمالي الشعب المطروحة:</span>
-          <span className="font-mono text-univ-800 font-bold">{offeredCourseSections.length}</span>
+          <span className="font-mono text-univ-800 font-bold">{liveSections.length}</span>
         </div>
       </div>
 

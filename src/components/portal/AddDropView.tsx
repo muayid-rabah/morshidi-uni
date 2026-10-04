@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useStudent } from '../../context/StudentContext';
-import { academicDates } from '../../data/academicDates';
 import { StatusBadge } from '../common/StatusBadge';
 import {
   CalendarDays,
@@ -16,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export const AddDropView: React.FC = () => {
-  const { activeStudent, setActivePage, showToast } = useStudent();
+  const { activeStudent, academicDates, calendar, setActivePage, showToast } = useStudent();
   const [dropTargetCourse, setDropTargetCourse] = useState<{ code: string; name: string } | null>(null);
 
   const handleConfirmDrop = () => {

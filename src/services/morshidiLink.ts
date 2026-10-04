@@ -1,8 +1,7 @@
 import { StudentProfile } from '../types/student';
 
-// Morshidi lives beside this portal during local development.  Its dev server
-// uses 3001 because the university portal already owns port 3000.
-const MORSHIDI_ORIGIN = 'http://127.0.0.1:3001';
+// Use the deployed destination by default; local development is opt-in via env.
+const MORSHIDI_ORIGIN = (import.meta.env.VITE_MORSHIDI_URL || 'https://morshidi.vercel.app').replace(/\/$/, '');
 
 /**
  * Opens the trusted Morshidi hand-off. The persona value is a synthetic

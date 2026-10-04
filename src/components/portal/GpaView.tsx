@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 
 export const GpaView: React.FC = () => {
-  const { activeStudent } = useStudent();
-  const progress = calculateStudentProgress(activeStudent);
+  const { activeStudent, courses } = useStudent();
+  const progress = calculateStudentProgress(activeStudent, courses);
   const history = activeStudent.semesterHistory;
 
   const latestSemester = history[history.length - 1];
