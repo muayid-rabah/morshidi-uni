@@ -1,0 +1,22 @@
+.university-signin{--ink:#f3e9d8;--copper:#d9884a;display:grid;grid-template-columns:1fr 1fr;min-height:100svh;width:100%;background:#0b1210;color:var(--ink);font-family:inherit}
+.university-signin-form{width:min(100%,520px);padding:clamp(28px,5vw,64px);margin:auto;box-sizing:border-box}
+.university-signin-brand{display:inline-flex;align-items:center;gap:14px;color:var(--ink);text-decoration:none;font-size:26px;font-weight:700}
+.university-signin-brand>svg{width:44px;height:44px;color:var(--copper);stroke-width:1}
+.university-signin-brand small{display:block;font-size:12px;font-weight:400;color:#bac5ba;margin-top:3px}
+.university-signin-heading{margin:56px 0 32px}.university-signin-kicker{font-size:12px;color:var(--copper);letter-spacing:2px}
+.university-signin-heading h1{font-size:clamp(32px,4vw,48px);line-height:1.5;color:var(--ink);margin:8px 0}
+.university-signin-fields{display:grid;gap:24px}.university-signin-field>label{display:block;font-size:13px;color:#c5cbbf;margin-bottom:10px}
+.university-signin-field input{box-sizing:border-box;width:100%;min-height:56px;padding:14px 18px;border:1px solid #637366;border-radius:14px;background:#101e19;color:var(--ink);font-size:16px;outline:none;direction:ltr;text-align:right;transition:border-color .3s,box-shadow .3s}
+.university-signin-field input:focus{border-color:var(--copper);box-shadow:0 0 0 3px #d9884a22}
+.university-signin-password{position:relative}.university-signin-password input{padding-left:58px}.university-signin-password button{position:absolute;left:7px;top:6px;width:44px;height:44px;display:grid;place-items:center;color:#c5cbbf;background:transparent;border:0;border-radius:50%}.university-signin-password svg{width:20px;height:20px}
+.university-signin-submit{position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:center;min-height:56px;border:1px solid #c9a45c80;border-radius:40px;background:linear-gradient(120deg,#14796b,#0e5a4f);color:var(--ink);padding:14px 24px;font-size:16px;font-weight:700;box-shadow:inset 0 1px #ffffff16,0 8px 28px #0003;transition:transform .3s,box-shadow .3s}
+.university-signin-submit:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 8px 24px #d9884a16}.university-signin-submit:active{transform:scale(.97)}.university-signin-submit:disabled{opacity:.55;cursor:wait}
+.university-signin-return{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:28px;color:#c5cbbf;font-size:12px;text-decoration:none}
+.university-signin a:focus-visible,.university-signin button:focus-visible{outline:2px solid var(--copper);outline-offset:5px}
+.university-signin-visual{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;align-items:center;min-width:0;padding:56px 24px;background:radial-gradient(ellipse at 50% 55%,#174b3b 0,transparent 65%),linear-gradient(145deg,#0f211a,#0b1210);border-inline-start:1px solid #c9a45c30}
+.university-signin-visual:after{content:"";position:absolute;left:-10%;right:-10%;bottom:-100px;height:220px;border-radius:50%;border-top:1px solid #c9a45c40;background:#0b1813;transform:rotate(-8deg)}
+.university-signin-coordinate,.university-signin-footnote{font-size:12px;color:#b4bcb0;letter-spacing:2px;z-index:1}.university-signin-astrolabe{position:absolute;top:10%;left:6%;width:88%;height:70%;color:#c9a45c70;animation:university-dial-turn 120s linear infinite}
+.university-signin-caption{z-index:1;text-align:center;margin:auto 0 85px;padding-top:250px;text-shadow:0 2px 20px #0b1210;line-height:1.6}.university-signin-caption span{display:block;font-size:22px;color:#c5cbbf}.university-signin-caption strong{display:block;font-size:clamp(32px,3.2vw,52px);font-weight:600;color:#f3e9d8}
+@keyframes university-dial-turn{to{transform:rotate(360deg)}}
+@media(max-width:760px){.university-signin{grid-template-columns:1fr}.university-signin-visual{display:none}.university-signin-form{padding:32px 24px;max-width:460px}.university-signin-heading{margin-top:44px}}
+@media(prefers-reduced-motion:reduce){.university-signin *{animation:none!important;transition:none!important}}
