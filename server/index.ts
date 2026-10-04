@@ -363,6 +363,6 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const app = createUniversityServer();
-  const port = Number(process.env.PORT || 3001);
+  const port = Number(process.env.PORT || 4101);
   await app.listen({ host: '0.0.0.0', port });
 }

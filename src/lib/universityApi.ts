@@ -9,7 +9,9 @@ export class UniversityApiError extends Error {
   readonly code: string;
 
   constructor(status: number, code: string) {
-    super(status === 401 ? 'تأكد من الرقم الجامعي وكلمة المرور.' :
+    super(code === 'AUTH_NOT_CONFIGURED' ? 'خدمة الدخول غير مهيأة. تواصل مع مسؤول البوابة.' :
+      code === 'UNIVERSITY_BACKEND_NOT_CONFIGURED' || code === 'UNIVERSITY_UNAVAILABLE' ? 'تعذر الوصول لخادم الجامعة. حاول لاحقًا.' :
+      status === 401 ? 'تأكد من الرقم الجامعي وكلمة المرور.' :
       status === 403 ? 'لا تملك صلاحية الوصول لهذه البيانات.' :
         status >= 500 ? 'تعذر الاتصال بالبوابة. حاول مرة أخرى.' : 'تعذر إتمام الطلب. تحقق من البيانات.');
     this.status = status;

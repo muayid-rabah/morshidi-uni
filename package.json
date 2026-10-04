@@ -11,9 +11,9 @@
     "build:portal": "tsc -p tsconfig.json && vite build",
     "build:server": "tsc --noEmit -p tsconfig.server.json",
     "build": "npm run build:portal && npm run build:server",
-    "start": "tsx server/index.ts",
-    "dev:server": "tsx watch server/index.ts",
-    "test:server": "tsx --test server/*.test.ts",
+    "start": "node --env-file-if-exists=.env --import tsx server/index.ts",
+    "dev:server": "node --env-file-if-exists=.env --watch --import tsx server/index.ts",
+    "test:server": "tsx --test server/*.test.ts api/*.test.ts",
     "preview": "vite preview",
     "export:data": "node scripts/export_sandbox_contract.cjs"
   },
