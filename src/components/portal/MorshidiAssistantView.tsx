@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useStudent } from '../../context/StudentContext';
 import { ExternalLink, RotateCcw, Sparkles } from 'lucide-react';
 import { buildMorshidiLink } from '../../services/morshidiLink';
 
 export const MorshidiAssistantView: React.FC = () => {
-  const { activeStudent } = useStudent();
   const [iframeKey, setIframeKey] = useState(0);
-  const morshidiUrl = buildMorshidiLink(activeStudent);
+  const morshidiUrl = buildMorshidiLink();
 
   const handleOpenExternal = () => {
     window.open(morshidiUrl, '_blank', 'noopener,noreferrer');

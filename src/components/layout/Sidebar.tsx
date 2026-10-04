@@ -35,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       </div>
       <nav className="portal-side-nav" aria-label="التنقل الرئيسي">{mainItems.map(renderItem)}</nav>
       <div className="portal-sidebar-bottom">
-        <button onClick={() => openMorshidi(activeStudent)} className="portal-ai-quick"><span><Sparkles className="h-4 w-4" />مرشدي الذكي</span><em>AI</em></button>
+        <button onClick={openMorshidi} className="portal-ai-quick"><span><Sparkles className="h-4 w-4" />مرشدي الذكي</span><em>AI</em></button>
         <button onClick={resetSandbox} className="portal-side-item text-amber-600 hover:text-amber-700"><span><RotateCcw className="h-4 w-4" />إعادة ضبط البيئة التجريبية</span></button>
         <div className="portal-logout"><button onClick={logout} className="portal-side-item"><span><LogOut className="h-4 w-4" />تسجيل الخروج</span></button></div>
       </div>
