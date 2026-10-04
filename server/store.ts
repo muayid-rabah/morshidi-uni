@@ -120,10 +120,22 @@ function academicRecordFromProfile(profile: StudentProfile, termCode: string) {
   };
 }
 
+/** Pre-loaded seed bundle — pass this when filesystem is unavailable (e.g. Vercel serverless). */
+export interface SeedBundle {
+  manifest: SeedManifest;
+  records: { records: SeedRecord[] };
+  courses: Record<string, unknown>[];
+  offerings: SeedOffering[];
+}
+
 export class UniversityStore {
   readonly db: DatabaseSync;
 
-  constructor(databasePath = process.env.UNI_DATABASE_PATH || './data/university.sqlite', seedSyntheticData = true) {
+  constructor(
+    databasePath = process.env.UNI_DATABASE_PATH || './data/university.sqlite',
+    seedSyntheticData = true,
+    private readonly seedBundle?: SeedBundle,
+  ) {
     if (databasePath !== ':memory:') mkdirSync(dirname(resolve(databasePath)), { recursive: true });
     this.db = new DatabaseSync(databasePath);
     this.db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
@@ -188,10 +200,10 @@ export class UniversityStore {
     const existing = this.db.prepare('SELECT COUNT(*) AS count FROM students').get() as { count: number };
     if (existing.count > 0) return;
 
-    const manifest = readSeed<SeedManifest>('manifest.json');
-    const records = readSeed<{ records: SeedRecord[] }>('academic-records.json').records;
-    const courses = readSeed<Record<string, unknown>[]>('courses.json');
-    const offerings = readSeed<SeedOffering[]>('offerings.json');
+    const manifest = this.seedBundle?.manifest ?? readSeed<SeedManifest>('manifest.json');
+    const records = this.seedBundle?.records.records ?? readSeed<{ records: SeedRecord[] }>('academic-records.json').records;
+    const courses = this.seedBundle?.courses ?? readSeed<Record<string, unknown>[]>('courses.json');
+    const offerings = this.seedBundle?.offerings ?? readSeed<SeedOffering[]>('offerings.json');
     const now = currentTime();
     const currentTerm = { code: manifest.active_term.term_id, label: manifest.active_term.name };
     const nextTermCode = `${currentTerm.code.split('-')[0]}-${Number(currentTerm.code.split('-')[1] || 0) + 1}`;

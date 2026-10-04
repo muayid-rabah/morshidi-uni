@@ -8,7 +8,21 @@
  *      /v1/offerings?term=2026-1  →  ?path=offerings&term=2026-1
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { UniversityStore, safeEqual } from '../server/store';
+import { UniversityStore } from '../server/store';
+import type { SeedBundle } from '../server/store';
+
+// Static JSON imports — bundled by Vercel, no filesystem needed at runtime
+import manifestJson from '../server/seed-data/manifest.json';
+import academicRecordsJson from '../server/seed-data/academic-records.json';
+import coursesJson from '../server/seed-data/courses.json';
+import offeringsJson from '../server/seed-data/offerings.json';
+
+const SEED_BUNDLE: SeedBundle = {
+  manifest: manifestJson as SeedBundle['manifest'],
+  records: academicRecordsJson as SeedBundle['records'],
+  courses: coursesJson as SeedBundle['courses'],
+  offerings: offeringsJson as SeedBundle['offerings'],
+};
 
 // ---------------------------------------------------------------------------
 // Singleton store (reused across warm Vercel invocations)
@@ -16,8 +30,7 @@ import { UniversityStore, safeEqual } from '../server/store';
 let _store: UniversityStore | null = null;
 function getStore(): UniversityStore {
   if (!_store) {
-    // `:memory:` because Vercel serverless has no persistent filesystem
-    _store = new UniversityStore(':memory:');
+    _store = new UniversityStore(':memory:', true, SEED_BUNDLE);
   }
   return _store;
 }
@@ -103,16 +116,9 @@ function json(res: ServerResponse, status: number, body: unknown): void {
 // ---------------------------------------------------------------------------
 // Manifest (read once from seed-data at cold start)
 // ---------------------------------------------------------------------------
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-
-let _manifest: Record<string, unknown> | null = null;
+// Manifest helper — uses the already-bundled import
 function readManifest(): Record<string, unknown> {
-  if (!_manifest) {
-    const path = resolve(process.cwd(), 'server', 'seed-data', 'manifest.json');
-    _manifest = JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>;
-  }
-  return _manifest;
+  return manifestJson as unknown as Record<string, unknown>;
 }
 
 // ---------------------------------------------------------------------------
