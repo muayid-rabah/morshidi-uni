@@ -1,8 +1,11 @@
 import type { AcademicDate, CourseSection, PlanCourse } from '../types/student';
 
+const DEFAULT_SUPABASE_URL = 'https://lzwttbjnuhdllesfuzzs.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'sb_publishable_JinD7WD4fZ_8GDbkNBeDGQ_6BGh0R-S';
+
 const apiBase = (import.meta.env.VITE_UNI_API_URL || '').replace(/\/$/, '');
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).replace(/\/$/, '');
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || DEFAULT_SUPABASE_KEY;
 
 export class UniversityApiError extends Error {
   readonly status: number;
