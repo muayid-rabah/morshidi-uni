@@ -1,0 +1,43 @@
+# Render.com Blueprint for Fake University
+# Defines a single Docker Web Service with persistent disk storage
+services:
+  - type: web
+    name: fake-university
+    runtime: docker
+    plan: starter # Starter plan is required on Render for Persistent Disk support
+    healthCheckPath: /healthz
+    disk:
+      name: uni-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: UNI_DATABASE_PATH
+        value: /data/university.sqlite
+      - key: UNI_ALLOW_SYNTHETIC_SEED
+        value: "false"
+      - key: UNI_TRUST_PROXY
+        value: "true"
+      - key: MORSHIDI_INTEGRATION_CLIENT_ID
+        value: morshidi
+      - key: MORSHIDI_INTEGRATION_CLIENT_SECRET
+        sync: false # Set securely in Render Dashboard (>= 32 chars)
+      - key: MORSHIDI_INTEGRATION_TOKEN_SECRET
+        sync: false # Set securely in Render Dashboard (>= 32 chars)
+      - key: MORSHIDI_INTEGRATION_TOKEN_EXPIRY_SECONDS
+        value: "900"
+      - key: MORSHIDI_INTEGRATION_TOKEN_ISSUER
+        value: fake-university
+      - key: MORSHIDI_LOGIN_RATE_LIMIT_MAX
+        value: "10"
+      - key: MORSHIDI_API_RATE_LIMIT_MAX
+        value: "60"
+      - key: SUPABASE_URL
+        sync: false # Set securely in Render Dashboard
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false # Set securely in Render Dashboard
+      - key: UNI_SERVICE_KEY
+        sync: false # Set securely in Render Dashboard (>= 32 chars)

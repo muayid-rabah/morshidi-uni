@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+dist
+.env
+.env.*
+data
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.log
+scratch
+coverage
+.DS_Store
+Thumbs.db

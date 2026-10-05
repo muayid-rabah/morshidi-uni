@@ -1,14 +1,19 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
+import Fastify, { type FastifyInstance, type FastifyRequest, type RawServerDefault } from 'fastify';
 import fastifyStatic from '@fastify/static';
+import fastifyRateLimit from '@fastify/rate-limit';
+import fastifyHelmet from '@fastify/helmet';
+import fastifyCors from '@fastify/cors';
 import type { AuthUser, GradeInput, UniEvent } from './store';
 import { safeEqual, signWebhook, UniversityStore } from './store';
+import { morshidiIntegrationRoutes } from './routes/integrations/morshidi';
+import { assertIntegrationSecrets } from './auth/securityConfig';
 
 type VerifyUser = (token: string) => Promise<AuthUser | null>;
 
-interface ServerOptions {
+export interface ServerOptions {
   store?: UniversityStore;
   seedSyntheticData?: boolean;
   verifyUser?: VerifyUser;
@@ -19,6 +24,22 @@ interface ServerOptions {
   startWebhookWorker?: boolean;
   fetcher?: typeof fetch;
   servePortal?: boolean;
+  supabaseUrl?: string;
+  supabaseKey?: string;
+  morshidiClientId?: string;
+  morshidiClientSecret?: string;
+  morshidiTokenSecret?: string;
+  morshidiTokenExpirySeconds?: number;
+  morshidiTokenIssuer?: string;
+  loginRateLimitMax?: number;
+  loginRateLimitWindowMs?: number;
+  apiRateLimitMax?: number;
+  apiRateLimitWindowMs?: number;
+  allowedOrigins?: string;
+  validateSecrets?: boolean;
+  isProduction?: boolean;
+  logger?: boolean | Record<string, unknown>;
+  trustProxy?: boolean | number | string;
 }
 
 function bearer(request: FastifyRequest): string | null {
@@ -38,7 +59,44 @@ function readManifest() {
 }
 
 export function createUniversityServer(options: ServerOptions = {}): FastifyInstance {
-  const app = Fastify({ logger: false, bodyLimit: 256 * 1024 });
+  const defaultRedact = {
+    paths: [
+      'req.headers.authorization',
+      'req.headers["x-morshidi-client-secret"]',
+      'req.headers["x-uni-api-key"]',
+      'req.body.password',
+      'req.body.clientSecret',
+      'req.body.secret',
+    ],
+    censor: '[REDACTED]',
+  };
+
+  let loggerConfig: boolean | Record<string, unknown> = false;
+  if (options.logger !== undefined) {
+    if (typeof options.logger === 'object' && options.logger !== null) {
+      loggerConfig = { ...options.logger, redact: (options.logger as Record<string, unknown>).redact ?? defaultRedact };
+    } else {
+      loggerConfig = options.logger;
+    }
+  } else if (process.env.NODE_ENV !== 'test') {
+    loggerConfig = {
+      level: process.env.LOG_LEVEL || 'info',
+      redact: defaultRedact,
+    };
+  }
+
+  const trustProxySetting = options.trustProxy ?? (
+    process.env.UNI_TRUST_PROXY === 'true' ? true :
+    process.env.UNI_TRUST_PROXY === 'false' ? false :
+    (process.env.UNI_TRUST_PROXY && !isNaN(Number(process.env.UNI_TRUST_PROXY)) ? Number(process.env.UNI_TRUST_PROXY) : (process.env.UNI_TRUST_PROXY || false))
+  );
+
+  const app: FastifyInstance = Fastify<RawServerDefault>({
+    logger: loggerConfig as any,
+    bodyLimit: 256 * 1024,
+    trustProxy: trustProxySetting as any,
+  });
+
   const allowSyntheticSeed = process.env.NODE_ENV !== 'production' || process.env.UNI_ALLOW_SYNTHETIC_SEED === 'true';
   const store = options.store ?? new UniversityStore(undefined, options.seedSyntheticData ?? allowSyntheticSeed);
   const fetcher = options.fetcher ?? fetch;
@@ -46,8 +104,44 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
   const webhookSecret = options.webhookSecret ?? process.env.UNI_WEBHOOK_SECRET ?? '';
   const webhookUrl = options.webhookUrl ?? process.env.UNI_WEBHOOK_URL ?? '';
   const adminUserIds = options.adminUserIds ?? (process.env.UNI_ADMIN_USER_IDS || '').split(',').map((value) => value.trim()).filter(Boolean);
-  const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, '');
-  const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+  const supabaseUrl = (options.supabaseUrl ?? process.env.SUPABASE_URL)?.replace(/\/$/, '');
+  const supabaseKey = options.supabaseKey ?? process.env.SUPABASE_PUBLISHABLE_KEY;
+
+  const isProd = options.isProduction ?? (process.env.NODE_ENV === 'production');
+  if (options.validateSecrets !== false && isProd) {
+    assertIntegrationSecrets({
+      morshidiTokenSecret: options.morshidiTokenSecret ?? process.env.MORSHIDI_INTEGRATION_TOKEN_SECRET ?? process.env.MORSHIDI_TOKEN_SECRET,
+      morshidiClientSecret: options.morshidiClientSecret ?? process.env.MORSHIDI_INTEGRATION_CLIENT_SECRET ?? process.env.MORSHIDI_CLIENT_SECRET,
+      serviceSecret,
+      isProduction: true,
+    });
+  }
+
+  void app.register(fastifyHelmet, {
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  });
+
+  const allowedOrigins = (options.allowedOrigins ?? process.env.UNI_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  void app.register(fastifyCors, {
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.length > 0) {
+        if (allowedOrigins.includes(origin)) return cb(null, true);
+        return cb(null, false);
+      }
+      return cb(null, false);
+    },
+    credentials: true,
+  });
+
+  void app.register(fastifyRateLimit, {
+    global: false,
+  });
 
   const verifyUser: VerifyUser = options.verifyUser ?? (async (token) => {
     if (!supabaseUrl || !supabaseKey) return null;
@@ -131,9 +225,10 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     }
   }
 
+  let webhookWorker: NodeJS.Timeout | null = null;
   if (options.startWebhookWorker !== false) {
-    const worker = setInterval(() => { void deliverPending(); }, 1000);
-    worker.unref();
+    webhookWorker = setInterval(() => { void deliverPending(); }, 1000);
+    webhookWorker.unref();
   }
 
   app.get('/healthz', async () => ({ ok: true, ready: store.hasAcademicData(), cursor: store.cursor() }));
@@ -348,21 +443,61 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     });
   }
 
+  void app.register(morshidiIntegrationRoutes, {
+    prefix: '/api/integrations/morshidi/v1',
+    store,
+    fetcher,
+    supabaseUrl,
+    supabaseKey,
+    adminUserIds,
+    morshidiClientId: options.morshidiClientId ?? process.env.MORSHIDI_INTEGRATION_CLIENT_ID ?? process.env.MORSHIDI_CLIENT_ID ?? 'morshidi',
+    morshidiClientSecret: options.morshidiClientSecret ?? process.env.MORSHIDI_INTEGRATION_CLIENT_SECRET ?? process.env.MORSHIDI_CLIENT_SECRET,
+    morshidiTokenSecret: options.morshidiTokenSecret ?? process.env.MORSHIDI_INTEGRATION_TOKEN_SECRET ?? process.env.MORSHIDI_TOKEN_SECRET,
+    morshidiTokenExpirySeconds: options.morshidiTokenExpirySeconds ?? (process.env.MORSHIDI_INTEGRATION_TOKEN_EXPIRY_SECONDS ? Number(process.env.MORSHIDI_INTEGRATION_TOKEN_EXPIRY_SECONDS) : (process.env.MORSHIDI_TOKEN_EXPIRY_SECONDS ? Number(process.env.MORSHIDI_TOKEN_EXPIRY_SECONDS) : undefined)),
+    morshidiTokenIssuer: options.morshidiTokenIssuer ?? process.env.MORSHIDI_INTEGRATION_TOKEN_ISSUER ?? process.env.MORSHIDI_TOKEN_ISSUER,
+    loginRateLimitMax: options.loginRateLimitMax ?? (process.env.MORSHIDI_LOGIN_RATE_LIMIT_MAX ? Number(process.env.MORSHIDI_LOGIN_RATE_LIMIT_MAX) : undefined),
+    loginRateLimitWindowMs: options.loginRateLimitWindowMs,
+    apiRateLimitMax: options.apiRateLimitMax ?? (process.env.MORSHIDI_API_RATE_LIMIT_MAX ? Number(process.env.MORSHIDI_API_RATE_LIMIT_MAX) : undefined),
+    apiRateLimitWindowMs: options.apiRateLimitWindowMs,
+  });
+
   if (options.servePortal !== false) {
     void app.register(fastifyStatic, { root: resolve(process.cwd(), 'dist'), prefix: '/', decorateReply: false });
     app.setNotFoundHandler((request, reply) => {
-      if (request.method === 'GET' && !request.url.startsWith('/v1/') && !request.url.startsWith('/healthz')) {
+      if (request.method === 'GET' && !request.url.startsWith('/v1/') && !request.url.startsWith('/healthz') && !request.url.startsWith('/api/')) {
         return reply.type('text/html; charset=utf-8').sendFile('index.html');
       }
       return reply.code(404).send({ error: 'NOT_FOUND' });
     });
   }
-  app.addHook('onClose', async () => store.close());
+
+  app.addHook('onClose', async () => {
+    if (webhookWorker) {
+      clearInterval(webhookWorker);
+      webhookWorker = null;
+    }
+    store.close();
+  });
   return app;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const app = createUniversityServer();
+  const host = process.env.HOST || process.env.UNI_HOST || '0.0.0.0';
   const port = Number(process.env.PORT || 4101);
-  await app.listen({ host: '0.0.0.0', port });
+  const app = createUniversityServer();
+
+  for (const sig of ['SIGTERM', 'SIGINT'] as const) {
+    process.on(sig, async () => {
+      try {
+        await app.close();
+      } catch {
+        // ignore
+      } finally {
+        process.exit(0);
+      }
+    });
+  }
+
+  await app.listen({ host, port });
+  console.log(`Fake University server listening on ${host}:${port}`);
 }

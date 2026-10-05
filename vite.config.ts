@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
     open: false,
     proxy: {
       '/v1': backend,
+      '/api': backend,
       '/healthz': backend,
     },
   },

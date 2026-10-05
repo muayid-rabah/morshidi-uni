@@ -287,6 +287,13 @@ export class UniversityStore {
     return rows.map((row) => JSON.parse(row.data_json) as Record<string, unknown>);
   }
 
+  getCourse(courseCode: string): Record<string, unknown> | null {
+    const row = this.db.prepare('SELECT data_json FROM courses WHERE course_code = ?').get(courseCode) as
+      | { data_json: string }
+      | undefined;
+    return row ? JSON.parse(row.data_json) as Record<string, unknown> : null;
+  }
+
   listOfferings(termCode?: string): Record<string, unknown>[] {
     const term = termCode || this.getCalendar().currentTerm.code;
     const rows = this.db.prepare('SELECT data_json FROM offerings WHERE term_code = ? ORDER BY course_code, section_id')
