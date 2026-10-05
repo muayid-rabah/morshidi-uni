@@ -1,10 +1,19 @@
 import type { PlanCourse, RequirementGroup, CourseStatus, EligibilityState, StudentProfile, CourseSection } from '../types/student';
 
-export function getRequirementHours(courses: PlanCourse[]): Record<string, number> {
-  return courses.reduce<Record<string, number>>((totals, course) => {
-    totals[course.group] = (totals[course.group] || 0) + course.credits;
-    return totals;
-  }, {});
+export const GOVERNED_DEGREE_PLAN_CREDITS = 132;
+
+export const GOVERNED_GROUP_REQUIREMENTS: Record<RequirementGroup, number> = {
+  "\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u062c\u0627\u0645\u0639\u0629 \u0627\u0644\u0625\u062c\u0628\u0627\u0631\u064a\u0629": 18,
+  "\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u062c\u0627\u0645\u0639\u0629 \u0627\u0644\u0627\u062e\u062a\u064a\u0627\u0631\u064a\u0629": 9,
+  "\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0643\u0644\u064a\u0629 \u0627\u0644\u0625\u062c\u0628\u0627\u0631\u064a\u0629": 21,
+  "\u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0645\u0633\u0627\u0646\u062f\u0629": 12,
+  "\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u062a\u062e\u0635\u0635 \u0627\u0644\u0625\u062c\u0628\u0627\u0631\u064a\u0629": 63,
+  "\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u062a\u062e\u0635\u0635 \u0627\u0644\u0627\u062e\u062a\u064a\u0627\u0631\u064a\u0629": 9,
+};
+
+
+export function getRequirementHours(_courses: PlanCourse[]): Record<string, number> {
+  return { ...GOVERNED_GROUP_REQUIREMENTS };
 }
 
 export function arePrerequisitesSatisfied(prereqs: string[], completedCourses: string[]): boolean {
@@ -44,21 +53,48 @@ export function getRegistrationEligibility(
 
 export function calculateStudentProgress(student: StudentProfile, courses: PlanCourse[]) {
   const groupRequirements = getRequirementHours(courses);
-  const groupCompletedHours = Object.fromEntries(Object.keys(groupRequirements).map((group) => [group, 0])) as Record<RequirementGroup, number>;
-  let totalCompletedHours = 0;
+  const groupCompletedHours = Object.fromEntries(
+    Object.keys(groupRequirements).map((group) => [group, 0]),
+  ) as Record<RequirementGroup, number>;
+
+  let fallbackCompletedHours = 0;
 
   for (const code of student.completedCourses) {
     const course = courses.find((item) => item.code === code);
     if (!course) continue;
+
     const groupHours = groupCompletedHours[course.group] || 0;
     const limit = groupRequirements[course.group] || 0;
-    groupCompletedHours[course.group] = groupHours + Math.min(course.credits, Math.max(0, limit - groupHours));
-    totalCompletedHours += course.credits;
+    const creditedHours = Math.min(course.credits, Math.max(0, limit - groupHours));
+
+    groupCompletedHours[course.group] = groupHours + creditedHours;
+    fallbackCompletedHours += creditedHours;
   }
 
-  const totalPlanHours = courses.reduce((sum, course) => sum + course.credits, 0);
-  const currentRegisteredHours = student.currentRegisteredSections.reduce((sum, section) => sum + section.credits, 0);
+  const reportedEarnedCredits =
+    typeof student.earnedCredits === 'number'
+      ? student.earnedCredits
+      : typeof student.earned_credits === 'number'
+        ? student.earned_credits
+        : fallbackCompletedHours;
+
+  const totalPlanHours = GOVERNED_DEGREE_PLAN_CREDITS;
+  const totalCompletedHours = Math.max(0, reportedEarnedCredits);
+
+  const currentRegisteredHours = student.currentRegisteredSections.reduce(
+    (sum, section) => sum + section.credits,
+    0,
+  );
+
   const remainingHours = Math.max(0, totalPlanHours - totalCompletedHours);
+
+  const completionPercentage = totalPlanHours
+    ? Math.min(
+        100,
+        Math.round((totalCompletedHours / totalPlanHours) * 1000) / 10,
+      )
+    : 0;
+
   return {
     totalPlanHours,
     totalCompletedHours,
@@ -66,7 +102,7 @@ export function calculateStudentProgress(student: StudentProfile, courses: PlanC
     currentRegisteredHours,
     groupCompletedHours,
     groupRequirements,
-    completionPercentage: totalPlanHours ? Math.min(100, Math.round((totalCompletedHours / totalPlanHours) * 100)) : 0,
+    completionPercentage,
   };
 }
 

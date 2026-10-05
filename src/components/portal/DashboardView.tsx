@@ -240,7 +240,7 @@ export const DashboardView: React.FC = () => {
 
         <ProgressBar
           current={progress.totalCompletedHours}
-          max={132}
+          max={progress.totalPlanHours}
           showValues={false}
           variant="emerald"
         />
