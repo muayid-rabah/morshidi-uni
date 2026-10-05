@@ -26,6 +26,7 @@ export const demoStudents: StudentProfile[] = [
     academicStatus: 'منتظم (مستوى متقدم - مرتبة الشرف)',
     profileType: 'advanced',
     profileDescription: 'طالب في السنة الرابعة - مستوى متقدم، أنجز أغلب متطلبات الخطة بنجاح وتفوق.',
+    earnedCredits: 96,
     completedCourses: [
       // University Required (18)
       '0200104', '0200105', '0200106', '0200110', '0200111', '0200115', '0200153', '0200154', '0400202',
@@ -177,6 +178,7 @@ export const demoStudents: StudentProfile[] = [
     academicStatus: 'منتظم (مستوى متوسط - جيد جداً)',
     profileType: 'mid',
     profileDescription: 'طالبة في منتصف مسارها الأكاديمي، قطعت شوطاً مميزاً في الأساسيات وبدأت في تخصص الذكاء الاصطناعي.',
+    earnedCredits: 52,
     completedCourses: [
       // University Required (12)
       '0200104', '0200105', '0200106', '0200110', '0200115', '0200153',
@@ -274,6 +276,7 @@ export const demoStudents: StudentProfile[] = [
     academicStatus: 'تحت الملاحظة الأكاديمية (مراجعة مطلوبة)',
     profileType: 'review',
     profileDescription: 'طالب لديه بعض المواد التي تتطلب مراجعة أكاديمية واعتماد معادلات الساعات السابقة.',
+    earnedCredits: 41,
     completedCourses: [
       // University (9)
       '0200104', '0200105', '0200110',
@@ -371,6 +374,7 @@ export const demoStudents: StudentProfile[] = [
     academicStatus: 'منتظم (مستوى ثانٍ - جيد جداً)',
     profileType: 'early',
     profileDescription: 'طالبة في سنتها الثانية، أنهت السنة التحضيرية بنجاح وتسير وفق الخطة الإرشادية.',
+    earnedCredits: 20,
     completedCourses: [
       // University (6)
       '0200105', '0200106',
@@ -452,6 +456,7 @@ export const demoStudents: StudentProfile[] = [
     academicStatus: 'مستجد (سنة أولى - فصل أول)',
     profileType: 'freshman',
     profileDescription: 'طالب مستجد التحق بالجامعة هذا الفصل، في بداية مسيرته الأكاديمية.',
+    earnedCredits: 0,
     completedCourses: [],
     currentRegisteredSections: [
       getSec('SEC-1501110-1'), // برمجة الحاسوب (1) (3 cr)
