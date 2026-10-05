@@ -112,6 +112,8 @@ export interface StudentProfile {
   avatarUrl?: string;
   profileType: 'advanced' | 'mid' | 'review' | 'early' | 'freshman';
   profileDescription: string;
+  earnedCredits?: number;
+  earned_credits?: number;
   
   // Academic history & states
   completedCourses: string[]; // Course codes
