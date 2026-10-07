@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
-import type { UniversityStore } from '../../store';
+import type { UniversityRepository } from '../../repositories/universityRepository';
 import { authenticateMorshidiClient } from '../../auth/morshidiClientAuth';
 import { verifyStudentCredentials } from '../../services/morshidiAuthVerifier';
 import { issueIntegrationToken } from '../../auth/integrationToken';
@@ -13,7 +13,7 @@ import {
 } from '../../serializers/morshidiContract';
 
 export interface MorshidiIntegrationRoutesOptions {
-  store?: UniversityStore;
+  repository?: UniversityRepository;
   fetcher?: typeof fetch;
   supabaseUrl?: string;
   supabaseKey?: string;
@@ -143,7 +143,7 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
 
       // 3. Level 2: Student Authentication (Orchestrate Step 1 Verifier)
       const verifyResult = await verifyStudentCredentials(studentId, password, {
-        store: options.store,
+        repository: options.repository,
         fetcher: options.fetcher,
         supabaseUrl: options.supabaseUrl,
         supabaseKey: options.supabaseKey,
@@ -238,7 +238,7 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
 
       const studentId = authResult.studentId;
 
-      if (!options.store) {
+      if (!options.repository) {
         return reply.code(500).send({
           success: false,
           error: 'INTEGRATION_UNAVAILABLE',
@@ -246,7 +246,7 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
       }
 
       // 2. Load authoritative student data from live University Store
-      const profile = options.store.getStudent(studentId);
+      const profile = await options.repository.getStudent(studentId);
       if (!profile) {
         return reply.code(404).send({
           success: false,
@@ -254,7 +254,7 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
         });
       }
 
-      const record = options.store.getStudentRecord(studentId);
+      const record = await options.repository.getStudentRecord(studentId);
 
       // 3. Map to external, sanitized Morshidi contract
       const student = mapStudentToMorshidiProfile(profile, record);
@@ -291,16 +291,16 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
         return reply.code(401).send({ success: false, error: 'UNAUTHORIZED' });
       }
 
-      if (!options.store) {
+      if (!options.repository) {
         return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
       }
 
-      const profile = options.store.getStudent(authResult.studentId);
+      const profile = await options.repository.getStudent(authResult.studentId);
       if (!profile) {
         return reply.code(404).send({ success: false, error: 'STUDENT_NOT_FOUND' });
       }
 
-      const catalog = options.store.listCourses();
+      const catalog = await options.repository.listCourses();
       const courses = mapStudentCoursesToMorshidi(profile, catalog);
 
       return reply.code(200).send({
@@ -335,16 +335,16 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
         return reply.code(401).send({ success: false, error: 'UNAUTHORIZED' });
       }
 
-      if (!options.store) {
+      if (!options.repository) {
         return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
       }
 
-      const profile = options.store.getStudent(authResult.studentId);
+      const profile = await options.repository.getStudent(authResult.studentId);
       if (!profile) {
         return reply.code(404).send({ success: false, error: 'STUDENT_NOT_FOUND' });
       }
 
-      const record = options.store.getStudentRecord(authResult.studentId);
+      const record = await options.repository.getStudentRecord(authResult.studentId);
       const gradesData = mapStudentGradesToMorshidi(profile, record);
 
       return reply.code(200).send({
@@ -380,16 +380,16 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
         return reply.code(401).send({ success: false, error: 'UNAUTHORIZED' });
       }
 
-      if (!options.store) {
+      if (!options.repository) {
         return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
       }
 
-      const profile = options.store.getStudent(authResult.studentId);
+      const profile = await options.repository.getStudent(authResult.studentId);
       if (!profile) {
         return reply.code(404).send({ success: false, error: 'STUDENT_NOT_FOUND' });
       }
 
-      const calendar = options.store.getCalendar();
+      const calendar = await options.repository.getCalendar();
       const currentTerm = calendar?.currentTerm ?? { code: 'UNKNOWN', label: 'Unknown Term' };
       const enrollmentsData = mapStudentEnrollmentsToMorshidi(profile, currentTerm);
 
@@ -427,17 +427,17 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
         return reply.code(401).send({ success: false, error: 'UNAUTHORIZED' });
       }
 
-      if (!options.store) {
+      if (!options.repository) {
         return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
       }
 
-      const profile = options.store.getStudent(authResult.studentId);
+      const profile = await options.repository.getStudent(authResult.studentId);
       if (!profile) {
         return reply.code(404).send({ success: false, error: 'STUDENT_NOT_FOUND' });
       }
 
-      const record = options.store.getStudentRecord(authResult.studentId);
-      const catalog = options.store.listCourses();
+      const record = await options.repository.getStudentRecord(authResult.studentId);
+      const catalog = await options.repository.listCourses();
       const plan = mapAcademicPlanToMorshidi(profile, record, catalog);
 
       return reply.code(200).send({

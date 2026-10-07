@@ -14,6 +14,7 @@
     "start": "node --env-file-if-exists=.env --import tsx server/index.ts",
     "dev:server": "node --env-file-if-exists=.env --watch --import tsx server/index.ts",
     "test:server": "tsx --test server/*.test.ts api/*.test.ts",
+    "seed:supabase": "node --env-file-if-exists=.env --import tsx scripts/seed_supabase_university.ts",
     "preview": "vite preview",
     "export:data": "node scripts/export_sandbox_contract.cjs"
   },
@@ -22,6 +23,7 @@
     "@fastify/helmet": "^13.1.1",
     "@fastify/rate-limit": "^11.2.0",
     "@fastify/static": "^8.2.0",
+    "@supabase/supabase-js": "2.117.2",
     "clsx": "^2.1.1",
     "fastify": "^5.12.5",
     "lucide-react": "^0.475.0",

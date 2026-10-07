@@ -8,12 +8,17 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyCors from '@fastify/cors';
 import type { AuthUser, GradeInput, UniEvent } from './store';
 import { safeEqual, signWebhook, UniversityStore } from './store';
+import type { UniversityRepository } from './repositories/universityRepository';
+import { SQLiteUniversityRepository } from './repositories/sqliteUniversityRepository';
+import { createUniversityRepository } from './repositories/createUniversityRepository';
 import { morshidiIntegrationRoutes } from './routes/integrations/morshidi';
 import { assertIntegrationSecrets } from './auth/securityConfig';
 
 type VerifyUser = (token: string) => Promise<AuthUser | null>;
 
 export interface ServerOptions {
+  repository?: UniversityRepository;
+  /** Legacy test/in-process injection. Adapted to UniversityRepository at the server boundary. */
   store?: UniversityStore;
   seedSyntheticData?: boolean;
   verifyUser?: VerifyUser;
@@ -98,7 +103,9 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
   });
 
   const allowSyntheticSeed = process.env.NODE_ENV !== 'production' || process.env.UNI_ALLOW_SYNTHETIC_SEED === 'true';
-  const store = options.store ?? new UniversityStore(undefined, options.seedSyntheticData ?? allowSyntheticSeed);
+  const repository = options.repository ?? (options.store
+    ? new SQLiteUniversityRepository(options.store)
+    : createUniversityRepository({ seedSyntheticData: options.seedSyntheticData ?? allowSyntheticSeed }));
   const fetcher = options.fetcher ?? fetch;
   const serviceSecret = options.serviceSecret ?? process.env.UNI_SERVICE_KEY ?? '';
   const webhookSecret = options.webhookSecret ?? process.env.UNI_WEBHOOK_SECRET ?? '';
@@ -182,7 +189,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     if (deliveryRunning || !webhookUrl || !webhookSecret) return;
     deliveryRunning = true;
     try {
-      for (const row of store.deliveryBatch()) {
+      for (const row of await repository.deliveryBatch()) {
         const event: UniEvent = {
           cursor: row.cursor,
           id: row.id,
@@ -213,9 +220,9 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
             signal: AbortSignal.timeout(5000),
           });
           statusCode = response.status;
-          store.markDelivery(row.cursor, statusCode, response.ok);
+          await repository.markDelivery(row.cursor, statusCode, response.ok);
         } catch {
-          store.markDelivery(row.cursor, statusCode, false);
+          await repository.markDelivery(row.cursor, statusCode, false);
         } finally {
           pending.delete(row.cursor);
         }
@@ -231,7 +238,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     webhookWorker.unref();
   }
 
-  app.get('/healthz', async () => ({ ok: true, ready: store.hasAcademicData(), cursor: store.cursor() }));
+  app.get('/healthz', async () => ({ ok: true, ready: await repository.hasAcademicData(), cursor: await repository.cursor() }));
   app.get('/v1/auth/me', async (request, reply) => {
     const user = await authenticatedUser(request);
     if (!user) return reply.code(401).send({ error: 'AUTH_REQUIRED' });
@@ -240,23 +247,23 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     if (!isAdmin && !studentId) return reply.code(403).send({ error: 'STUDENT_SCOPE_REQUIRED' });
     return { studentId, role: isAdmin ? 'admin' : 'student' };
   });
-  app.get('/v1/manifest', async () => ({ ...readManifest(), runtime_initialized: store.hasAcademicData() }));
+  app.get('/v1/manifest', async () => ({ ...readManifest(), runtime_initialized: await repository.hasAcademicData() }));
   app.get('/v1/calendar', async (_request, reply) => {
-    if (!store.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
-    return store.getCalendar();
+    if (!await repository.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
+    return repository.getCalendar();
   });
   app.get('/v1/calendar/dates', async (_request, reply) => {
-    if (!store.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
-    return store.getAcademicDates();
+    if (!await repository.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
+    return repository.getAcademicDates();
   });
   app.get('/v1/courses', async (_request, reply) => {
-    if (!store.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
-    return store.listCourses();
+    if (!await repository.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
+    return repository.listCourses();
   });
   app.get('/v1/offerings', async (request, reply) => {
-    if (!store.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
+    if (!await repository.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
     const term = (request.query as { term?: string }).term;
-    const rows = store.listOfferings(term);
+    const rows = await repository.listOfferings(term);
     if (term && rows.length === 0) return reply.code(404).send({ error: 'TERM_NOT_FOUND', message: 'No offerings for this term.' });
     return rows;
   });
@@ -268,7 +275,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     const query = request.query as { since?: string; limit?: string };
     const since = Number(query.since ?? 0);
     if (!Number.isSafeInteger(since) || since < 0) return reply.code(400).send({ error: 'INVALID_CURSOR' });
-    const events = store.eventsSince(since, Number(query.limit ?? 250));
+    const events = await repository.eventsSince(since, Number(query.limit ?? 250));
     return { cursor: events.at(-1)?.cursor ?? since, events };
   });
 
@@ -279,9 +286,9 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
       return reply.code(401).send({ error: 'SERVICE_AUTH_REQUIRED' });
     }
     const studentId = (request.params as { id: string }).id;
-    if (!store.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
-    const profile = store.getStudent(studentId);
-    const record = store.getStudentRecord(studentId);
+    if (!await repository.hasAcademicData()) return reply.code(503).send({ error: 'UNIVERSITY_DATA_NOT_INITIALIZED' });
+    const profile = await repository.getStudent(studentId);
+    const record = await repository.getStudentRecord(studentId);
     if (!profile || !record) return reply.code(404).send({ error: 'STUDENT_NOT_FOUND' });
     const manifest = readManifest();
     return { profile, record, source: manifest.source ?? 'university', synthetic: manifest.synthetic === true,
@@ -291,7 +298,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
   app.get('/v1/students', async (request, reply) => {
     const user = await adminUser(request, reply);
     if (!user) return;
-    return store.listStudents();
+    return repository.listStudents();
   });
   app.get('/v1/students/:id', async (request, reply) => {
     const studentId = (request.params as { id: string }).id;
@@ -300,7 +307,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     if (!adminUserIds.includes(user.id) && studentIdFromEmail(user.email) !== studentId) {
       return reply.code(403).send({ error: 'STUDENT_SCOPE_REQUIRED' });
     }
-    const student = store.getStudent(studentId);
+    const student = await repository.getStudent(studentId);
     return student ? student : reply.code(404).send({ error: 'STUDENT_NOT_FOUND' });
   });
   app.get('/v1/students/:id/records', async (request, reply) => {
@@ -310,7 +317,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     if (!adminUserIds.includes(user.id) && studentIdFromEmail(user.email) !== studentId) {
       return reply.code(403).send({ error: 'STUDENT_SCOPE_REQUIRED' });
     }
-    const record = store.getStudentRecord(studentId);
+    const record = await repository.getStudentRecord(studentId);
     return record ? record : reply.code(404).send({ error: 'STUDENT_NOT_FOUND' });
   });
   app.get('/v1/me/schedule', async (request, reply) => {
@@ -318,7 +325,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     if (!user) return reply.code(401).send({ error: 'AUTH_REQUIRED' });
     const studentId = studentIdFromEmail(user.email);
     if (!studentId) return reply.code(403).send({ error: 'STUDENT_SCOPE_REQUIRED' });
-    return { sections: store.getStudent(studentId)?.currentRegisteredSections ?? [] };
+    return { sections: (await repository.getStudent(studentId))?.currentRegisteredSections ?? [] };
   });
   app.put('/v1/me/schedule', async (request, reply) => {
     const user = await authenticatedUser(request);
@@ -330,7 +337,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
       return reply.code(422).send({ error: 'INVALID_SCHEDULE' });
     }
     try {
-      return store.registerSections(studentId, body.sectionIds as string[], request.headers['idempotency-key'] as string | undefined);
+      return await repository.registerSections(studentId, body.sectionIds as string[], request.headers['idempotency-key'] as string | undefined);
     } catch (error) {
       const code = error instanceof Error ? error.message : '';
       const validationErrors = new Set(['REGISTRATION_CLOSED', 'DUPLICATE_SECTION', 'WRONG_TERM', 'SECTION_FULL',
@@ -348,7 +355,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
       if (!body || typeof body.studentId !== 'string' || typeof body.courseCode !== 'string' || typeof body.grade !== 'number') {
         return reply.code(422).send({ error: 'INVALID_GRADE_REQUEST' });
       }
-      const result = store.postGrade({ ...body, idempotencyKey: request.headers['idempotency-key'] as string | undefined });
+      const result = await repository.postGrade({ ...body, idempotencyKey: request.headers['idempotency-key'] as string | undefined });
       return reply.code(result.duplicate ? 200 : 201).send(result);
     } catch (error) {
       const code = error instanceof Error ? error.message : '';
@@ -366,7 +373,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
       return reply.code(422).send({ error: 'INVALID_STUDENT' });
     }
     try {
-      const event = store.createStudent(profile as unknown as import('../src/types/student').StudentProfile,
+      const event = await repository.createStudent(profile as unknown as import('../src/types/student').StudentProfile,
         request.headers['idempotency-key'] as string | undefined);
       return reply.code(event.cursor ? 201 : 200).send({ event });
     } catch (error) {
@@ -380,7 +387,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     const { studyPlan } = request.body as { studyPlan?: string };
     if (typeof studyPlan !== 'string' || !studyPlan.trim()) return reply.code(422).send({ error: 'INVALID_PLAN' });
     try {
-      const event = store.updateStudentPlan((request.params as { id: string }).id, studyPlan.trim(),
+      const event = await repository.updateStudentPlan((request.params as { id: string }).id, studyPlan.trim(),
         request.headers['idempotency-key'] as string | undefined);
       return { event };
     } catch (error) {
@@ -393,7 +400,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     const body = request.body as { sections?: unknown } | undefined;
     if (!Array.isArray(body?.sections)) return reply.code(422).send({ error: 'INVALID_SCHEDULE' });
     try {
-      const event = store.updateStudentSchedule((request.params as { id: string }).id,
+      const event = await repository.updateStudentSchedule((request.params as { id: string }).id,
         body.sections as import('../src/types/student').StudentProfile['currentRegisteredSections'],
         request.headers['idempotency-key'] as string | undefined);
       return { event };
@@ -405,20 +412,20 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
   app.post('/v1/admin/registration/open', async (request, reply) => {
     if (!await adminUser(request, reply)) return;
     const body = (request.body ?? {}) as { start?: string; end?: string };
-    const result = store.setRegistration(true, body.start, body.end, request.headers['idempotency-key'] as string | undefined);
+    const result = await repository.setRegistration(true, body.start, body.end, request.headers['idempotency-key'] as string | undefined);
     return { currentTerm: result.calendar.currentTerm, registrationOpen: result.calendar.registrationOpen,
       registrationWindow: result.calendar.registrationWindow, event: result.event };
   });
   app.post('/v1/admin/registration/close', async (request, reply) => {
     if (!await adminUser(request, reply)) return;
-    const result = store.setRegistration(false, undefined, undefined, request.headers['idempotency-key'] as string | undefined);
+    const result = await repository.setRegistration(false, undefined, undefined, request.headers['idempotency-key'] as string | undefined);
     return { currentTerm: result.calendar.currentTerm, registrationOpen: result.calendar.registrationOpen,
       registrationWindow: result.calendar.registrationWindow, event: result.event };
   });
   app.patch('/v1/admin/offerings/:id', async (request, reply) => {
     if (!await adminUser(request, reply)) return;
     try {
-      const result = store.updateOffering((request.params as { id: string }).id, request.body as Record<string, unknown>,
+      const result = await repository.updateOffering((request.params as { id: string }).id, request.body as Record<string, unknown>,
         'update', request.headers['idempotency-key'] as string | undefined);
       return result;
     } catch (error) {
@@ -432,7 +439,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     app.post(`/v1/admin/offerings/:id/${action}`, async (request, reply) => {
       if (!await adminUser(request, reply)) return;
       try {
-        return store.updateOffering((request.params as { id: string }).id, {}, action,
+        return await repository.updateOffering((request.params as { id: string }).id, {}, action,
           request.headers['idempotency-key'] as string | undefined);
       } catch (error) {
         const code = error instanceof Error ? error.message : '';
@@ -445,7 +452,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
 
   void app.register(morshidiIntegrationRoutes, {
     prefix: '/api/integrations/morshidi/v1',
-    store,
+    repository,
     fetcher,
     supabaseUrl,
     supabaseKey,
@@ -476,7 +483,7 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
       clearInterval(webhookWorker);
       webhookWorker = null;
     }
-    store.close();
+    await repository.close();
   });
   return app;
 }

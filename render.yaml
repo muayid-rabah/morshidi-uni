@@ -17,6 +17,8 @@ services:
         value: 0.0.0.0
       - key: UNI_DATABASE_PATH
         value: /data/university.sqlite
+      - key: UNI_DATA_BACKEND
+        value: supabase
       - key: UNI_ALLOW_SYNTHETIC_SEED
         value: "false"
       - key: UNI_TRUST_PROXY
@@ -39,5 +41,7 @@ services:
         sync: false # Set securely in Render Dashboard
       - key: SUPABASE_PUBLISHABLE_KEY
         sync: false # Set securely in Render Dashboard
+      - key: SUPABASE_SECRET_KEY
+        sync: false # Set securely in Render Dashboard; server-only academic data access
       - key: UNI_SERVICE_KEY
         sync: false # Set securely in Render Dashboard (>= 32 chars)

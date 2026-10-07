@@ -1,4 +1,7 @@
 import { UniversityStore } from '../store';
+import type { UniversityRepository } from '../repositories/universityRepository';
+import { SQLiteUniversityRepository } from '../repositories/sqliteUniversityRepository';
+import { createUniversityRepository } from '../repositories/createUniversityRepository';
 
 export type AuthFailureReason =
   | 'INVALID_STUDENT_ID'
@@ -23,6 +26,8 @@ export interface AuthVerificationFailure {
 export type AuthVerificationResult = AuthVerificationSuccess | AuthVerificationFailure;
 
 export interface AuthVerifierOptions {
+  repository?: UniversityRepository;
+  /** Legacy direct SQLite injection retained for existing callers and tests. */
   store?: UniversityStore;
   supabaseUrl?: string;
   supabaseKey?: string;
@@ -186,15 +191,15 @@ export async function verifyStudentCredentials(
   }
 
   // 7. Verify presence in University student database
-  let store = options.store;
-  let ownedStore = false;
-  if (!store) {
-    store = new UniversityStore();
-    ownedStore = true;
+  let repository = options.repository ?? (options.store ? new SQLiteUniversityRepository(options.store) : undefined);
+  let ownedRepository = false;
+  if (!repository) {
+    repository = createUniversityRepository();
+    ownedRepository = true;
   }
 
   try {
-    const student = store.getStudent(cleanId);
+    const student = await repository.getStudent(cleanId);
     if (!student) {
       return {
         success: false,
@@ -203,8 +208,8 @@ export async function verifyStudentCredentials(
       };
     }
   } finally {
-    if (ownedStore) {
-      store.close();
+    if (ownedRepository) {
+      await repository.close();
     }
   }
 
@@ -218,7 +223,7 @@ export async function verifyStudentCredentials(
 }
 
 /**
- * Helper factory to create a verifier pre-bound to a specific UniversityStore or options.
+ * Helper factory to create a verifier pre-bound to a UniversityRepository or options.
  */
 export function createStudentAuthVerifier(baseOptions: AuthVerifierOptions = {}) {
   return (studentId: string, password: string, overrideOptions: AuthVerifierOptions = {}) =>

@@ -92,7 +92,7 @@ function makeKey(value?: string): string {
   return value?.trim() || randomUUID();
 }
 
-function academicRecordFromProfile(profile: StudentProfile, termCode: string) {
+export function academicRecordFromProfile(profile: StudentProfile, termCode: string) {
   const attempts = profile.semesterHistory.flatMap((semester) => semester.courses.map((course) => ({
     course_code: course.courseCode,
     course_name: course.courseName,

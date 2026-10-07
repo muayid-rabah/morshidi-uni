@@ -11,5 +11,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["server/**/*.ts", "src/data/demoStudents.ts", "src/data/offeredSections.ts", "src/data/academicDates.ts", "src/types/student.ts"]
+  "include": ["server/**/*.ts", "scripts/**/*.ts", "src/data/demoStudents.ts", "src/data/offeredSections.ts", "src/data/academicDates.ts", "src/types/student.ts"]
 }
