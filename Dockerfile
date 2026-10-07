@@ -11,6 +11,11 @@ COPY tsconfig*.json vite.config.ts tailwind.config.js postcss.config.js index.ht
 COPY src/ ./src/
 COPY server/seed-data/manifest.json ./server/seed-data/manifest.json
 
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_PUBLISHABLE_KEY
+ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL} \
+    VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+
 RUN npm run build:portal
 
 # Stage 2: Production runtime

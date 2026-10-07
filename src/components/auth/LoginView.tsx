@@ -34,7 +34,8 @@ export const LoginView: React.FC = () => {
           <input
             id="university-id"
             name="username"
-            inputMode="numeric"
+            type="text"
+            inputMode="email"
             autoComplete="username"
             required
             value={universityId}

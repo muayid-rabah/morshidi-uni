@@ -1,11 +1,14 @@
 import type { AcademicDate, CourseSection, PlanCourse } from '../types/student';
 
-const DEFAULT_SUPABASE_URL = 'https://lzwttbjnuhdllesfuzzs.supabase.co';
-const DEFAULT_SUPABASE_KEY = 'sb_publishable_JinD7WD4fZ_8GDbkNBeDGQ_6BGh0R-S';
+type UniversityViteEnvironment = {
+  VITE_UNI_API_URL?: string;
+  VITE_SUPABASE_URL?: string;
+  VITE_SUPABASE_PUBLISHABLE_KEY?: string;
+};
 
-const apiBase = (import.meta.env.VITE_UNI_API_URL || '').replace(/\/$/, '');
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).replace(/\/$/, '');
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || DEFAULT_SUPABASE_KEY;
+const viteEnv = (import.meta as ImportMeta & { env?: UniversityViteEnvironment }).env ?? {};
+const apiBase = (viteEnv.VITE_UNI_API_URL || '').replace(/\/$/, '');
+const STUDENT_EMAIL_DOMAIN = 'std.morshidi.edu.jo';
 
 export class UniversityApiError extends Error {
   readonly status: number;
@@ -20,6 +23,22 @@ export class UniversityApiError extends Error {
     this.status = status;
     this.code = code;
   }
+}
+
+export function resolveUniversityAuthConfig(env: UniversityViteEnvironment) {
+  const url = (env.VITE_SUPABASE_URL || '').trim().replace(/\/+$/, '');
+  const publishableKey = (env.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
+  if (!url || !publishableKey) throw new UniversityApiError(503, 'AUTH_NOT_CONFIGURED');
+  return { url, publishableKey };
+}
+
+export function normalizeStudentEmail(identity: string): string {
+  const value = identity.trim();
+  const email = value.includes('@') ? value.toLowerCase() : `${value}@${STUDENT_EMAIL_DOMAIN}`;
+  if (!email || !/^[^@\s]+@std\.morshidi\.edu\.jo$/.test(email)) {
+    throw new UniversityApiError(401, 'AUTH_FAILED');
+  }
+  return email;
 }
 
 async function jsonRequest<T>(path: string, token?: string, init: RequestInit = {}): Promise<T> {
@@ -38,11 +57,11 @@ async function jsonRequest<T>(path: string, token?: string, init: RequestInit = 
 }
 
 export async function signInStudent(universityId: string, password: string): Promise<string> {
-  if (!supabaseUrl || !supabaseKey) throw new UniversityApiError(503, 'AUTH_NOT_CONFIGURED');
-  const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+  const { url, publishableKey } = resolveUniversityAuthConfig(viteEnv);
+  const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
     method: 'POST',
-    headers: { apikey: supabaseKey, 'Content-Type': 'application/json; charset=utf-8' },
-    body: JSON.stringify({ email: `${universityId.trim()}@std.morshidi.edu.jo`, password }),
+    headers: { apikey: publishableKey, 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ email: normalizeStudentEmail(universityId), password }),
   });
   const body = await response.json().catch(() => ({})) as { access_token?: string };
   if (!response.ok || !body.access_token) throw new UniversityApiError(401, 'AUTH_FAILED');

@@ -43,5 +43,9 @@ services:
         sync: false # Set securely in Render Dashboard
       - key: SUPABASE_SECRET_KEY
         sync: false # Set securely in Render Dashboard; server-only academic data access
+      - key: VITE_SUPABASE_URL
+        sync: false # Public portal build-time configuration
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        sync: false # Public portal build-time configuration
       - key: UNI_SERVICE_KEY
         sync: false # Set securely in Render Dashboard (>= 32 chars)
