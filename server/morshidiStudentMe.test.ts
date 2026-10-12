@@ -65,6 +65,7 @@ describe('Morshidi Authenticated Student /me Endpoint (Step 4)', () => {
         academicAdvisor: string;
         academicStatus: string;
         gpa: number;
+        gpaScale: number;
         earnedCredits: number;
       };
     };
@@ -81,6 +82,8 @@ describe('Morshidi Authenticated Student /me Endpoint (Step 4)', () => {
     assert.equal(body.student.academicAdvisor, 'د. سامر العلي');
     assert.ok(typeof body.student.academicStatus === 'string' && body.student.academicStatus.length > 0);
     assert.ok(typeof body.student.gpa === 'number' && body.student.gpa > 0);
+    assert.equal(body.student.gpa, 93.6);
+    assert.equal(body.student.gpaScale, 100);
     assert.ok(typeof body.student.earnedCredits === 'number' && body.student.earnedCredits > 0);
   });
 

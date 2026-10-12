@@ -350,6 +350,8 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
       return reply.code(200).send({
         success: true,
         cumulativeGpa: gradesData.cumulativeGpa,
+        gpaScale: gradesData.gpaScale,
+        gradingPolicy: gradesData.gradingPolicy,
         semesters: gradesData.semesters,
       });
     },

@@ -1,4 +1,8 @@
 import type { StudentProfile } from '../../src/types/student';
+import {
+  FAKE_UNIVERSITY_GRADING_POLICY,
+  type FakeUniversityGradingPolicy,
+} from '../academic/gradingPolicy';
 
 /**
  * Clean, safe, high-level student profile contract for external Morshidi consumers.
@@ -18,6 +22,7 @@ export interface MorshidiStudentProfileResponse {
   academicAdvisor: string;
   academicStatus: string;
   gpa: number;
+  gpaScale: number;
   earnedCredits: number;
 }
 
@@ -61,6 +66,8 @@ export interface MorshidiSemesterGrades {
 
 export interface MorshidiStudentGradesResponse {
   cumulativeGpa: number;
+  gpaScale: number;
+  gradingPolicy: FakeUniversityGradingPolicy;
   semesters: MorshidiSemesterGrades[];
 }
 
@@ -137,6 +144,7 @@ export function mapStudentToMorshidiProfile(
     academicAdvisor: profile.academicAdvisor,
     academicStatus: profile.academicStatus,
     gpa,
+    gpaScale: FAKE_UNIVERSITY_GRADING_POLICY.gpa.scale,
     earnedCredits,
   };
 }
@@ -240,6 +248,8 @@ export function mapStudentGradesToMorshidi(
 
   return {
     cumulativeGpa,
+    gpaScale: FAKE_UNIVERSITY_GRADING_POLICY.gpa.scale,
+    gradingPolicy: FAKE_UNIVERSITY_GRADING_POLICY,
     semesters,
   };
 }

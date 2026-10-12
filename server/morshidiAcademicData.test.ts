@@ -204,6 +204,12 @@ describe('Morshidi Academic Data Integration Endpoints (Step 5)', () => {
       const body = response.json() as {
         success: boolean;
         cumulativeGpa: number;
+        gpaScale: number;
+        gradingPolicy: {
+          version: string;
+          gpa: { numericMin: number; numericMax: number; scale: number };
+          courseGrade: { numericMin: number; numericMax: number };
+        };
         semesters: Array<{
           term: string;
           termLabel: string;
@@ -221,8 +227,13 @@ describe('Morshidi Academic Data Integration Endpoints (Step 5)', () => {
       };
 
       assert.equal(body.success, true);
-      assert.ok(typeof body.cumulativeGpa === 'number');
-      assert.ok(body.cumulativeGpa > 0);
+      assert.equal(body.cumulativeGpa, 93.6);
+      assert.equal(body.gpaScale, 100);
+      assert.deepEqual(body.gradingPolicy, {
+        version: 'FAKE_UNIVERSITY_GRADING_POLICY_V1',
+        gpa: { numericMin: 0, numericMax: 100, scale: 100 },
+        courseGrade: { numericMin: 0, numericMax: 100 },
+      });
       assert.ok(Array.isArray(body.semesters));
       assert.ok(body.semesters.length > 0);
 
