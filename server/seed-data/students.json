@@ -228,6 +228,33 @@
       "SEC-0400202-1"
     ],
     "earned_credits": 0,
-    "cumulative_gpa": 0
+    "cumulative_gpa": null
+  },
+  {
+    "id": "student-6",
+    "student_id": "202610099",
+    "university_id": "202610099",
+    "name": "ليان خالد النجار",
+    "faculty": "كلية تكنولوجيا المعلومات",
+    "major": "الذكاء الاصطناعي",
+    "degree": "بكالوريوس",
+    "study_type": "انتظام",
+    "admission_year": 2026,
+    "study_plan": "خطة 12",
+    "academic_advisor": "د. رامي منصور",
+    "academic_status": "مستجد (سنة أولى - فصل أول)",
+    "profile_type": "freshman",
+    "profile_description": "طالبة افتراضية مستجدة في فصلها الجامعي الأول دون أي سجل أداء أكاديمي سابق.",
+    "completed_courses": [],
+    "review_courses": [],
+    "current_registered_section_ids": [
+      "SEC-0300153-1",
+      "SEC-0300101-2",
+      "SEC-0200104-1",
+      "SEC-0200110-1",
+      "SEC-0200153-1"
+    ],
+    "earned_credits": 0,
+    "cumulative_gpa": null
   }
 ]

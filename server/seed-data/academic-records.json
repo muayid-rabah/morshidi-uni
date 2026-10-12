@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "fixture_version": "2026.10.02.v1",
+  "fixture_version": "2026.10.12.v2",
   "institution_id": "morshidi-sandbox",
   "records": [
     {
@@ -1175,7 +1175,7 @@
       "plan_id": "12",
       "plan_version_id": "PLAN-12-V1",
       "earned_credits": 0,
-      "cumulative_gpa": 0,
+      "cumulative_gpa": null,
       "semesters": [],
       "attempts": [],
       "current_registered_sections": [
@@ -1291,6 +1291,100 @@
           "start_time": "13:00",
           "end_time": "14:30",
           "room": "مبنى الخوارزمي - قاعة 104"
+        }
+      ]
+    },
+    {
+      "student_id": "202610099",
+      "program_id": "IT",
+      "major_id": "AI",
+      "plan_id": "12",
+      "plan_version_id": "PLAN-12-V1",
+      "earned_credits": 0,
+      "cumulative_gpa": null,
+      "semesters": [],
+      "attempts": [],
+      "current_registered_sections": [
+        {
+          "id": "SEC-0300153-1",
+          "course_code": "0300153",
+          "course_name": "اساسيات تكنولوجيا المعلومات",
+          "section_number": 1,
+          "credits": 3,
+          "instructor": "د. علاء الرواشدة",
+          "days": "ح ث خ",
+          "days_array": [
+            "الأحد",
+            "الثلاثاء",
+            "الخميس"
+          ],
+          "start_time": "08:00",
+          "end_time": "09:00",
+          "room": "مبنى العلوم - قاعة 101"
+        },
+        {
+          "id": "SEC-0300101-2",
+          "course_code": "0300101",
+          "course_name": "التفاضل والتكامل 1",
+          "section_number": 2,
+          "credits": 3,
+          "instructor": "د. هبة القاسم",
+          "days": "ن ر",
+          "days_array": [
+            "الاثنين",
+            "الأربعاء"
+          ],
+          "start_time": "14:30",
+          "end_time": "16:00",
+          "room": "مبنى IT - قاعة IT-100"
+        },
+        {
+          "id": "SEC-0200104-1",
+          "course_code": "0200104",
+          "course_name": "التربية الوطنية",
+          "section_number": 1,
+          "credits": 3,
+          "instructor": "د. فيصل الزعبي",
+          "days": "ح ث خ",
+          "days_array": [
+            "الأحد",
+            "الثلاثاء",
+            "الخميس"
+          ],
+          "start_time": "12:00",
+          "end_time": "13:00",
+          "room": "مبنى الخوارزمي - قاعة 101"
+        },
+        {
+          "id": "SEC-0200110-1",
+          "course_code": "0200110",
+          "course_name": "العلوم العسكرية",
+          "section_number": 1,
+          "credits": 3,
+          "instructor": "د. خالد المصري",
+          "days": "ن ر",
+          "days_array": [
+            "الاثنين",
+            "الأربعاء"
+          ],
+          "start_time": "10:00",
+          "end_time": "11:30",
+          "room": "مبنى الهاشمي - مدرج 1"
+        },
+        {
+          "id": "SEC-0200153-1",
+          "course_code": "0200153",
+          "course_name": "المهارات الحياتية",
+          "section_number": 1,
+          "credits": 1,
+          "instructor": "د. طارق بني حمد",
+          "days": "الخميس (نشاط - يوم واحد)",
+          "days_array": [
+            "الخميس"
+          ],
+          "start_time": "13:00",
+          "end_time": "15:00",
+          "room": "المجمع الرياضي والصحي"
         }
       ]
     }

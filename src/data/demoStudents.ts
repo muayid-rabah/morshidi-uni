@@ -495,5 +495,44 @@ export const demoStudents: StudentProfile[] = [
       { id: 'TXN-502', date: '2026-09-01', reference: 'CRS-2026-0092', statement: 'رسوم ساعات معتمدة (15 ساعة)', debit: 700, credit: 0, balance: 820 },
       { id: 'TXN-503', date: '2026-09-02', reference: 'PAY-CLI-5561', statement: 'دفعة بنكية إلكترونية - إي فواتيركم', debit: 0, credit: 820, balance: 0 },
     ]
+  },
+
+  // ==========================================
+  // STUDENT 6: ليان خالد النجار (Synthetic Cold Start)
+  // ==========================================
+  {
+    id: 'student-6',
+    name: 'ليان خالد النجار',
+    universityId: '202610099',
+    faculty: 'كلية تكنولوجيا المعلومات',
+    major: 'الذكاء الاصطناعي',
+    degree: 'بكالوريوس',
+    studyType: 'انتظام',
+    admissionYear: 2026,
+    studyPlan: 'خطة 12',
+    academicAdvisor: 'د. رامي منصور',
+    academicStatus: 'مستجد (سنة أولى - فصل أول)',
+    profileType: 'freshman',
+    profileDescription: 'طالبة افتراضية مستجدة في فصلها الجامعي الأول دون أي سجل أداء أكاديمي سابق.',
+    earnedCredits: 0,
+    completedCourses: [],
+    currentRegisteredSections: [
+      getSec('SEC-0300153-1'), // اساسيات تكنولوجيا المعلومات (3 cr)
+      getSec('SEC-0300101-2'), // التفاضل والتكامل 1 (3 cr)
+      getSec('SEC-0200104-1'), // التربية الوطنية (3 cr)
+      getSec('SEC-0200110-1'), // العلوم العسكرية (3 cr)
+      getSec('SEC-0200153-1'), // المهارات الحياتية (1 cr)
+    ],
+    semesterHistory: [],
+    absences: [],
+    exams: [],
+    financialSummary: {
+      previousBalance: 0,
+      totalFees: 0,
+      totalPayments: 0,
+      totalDiscounts: 0,
+      currentBalance: 0,
+    },
+    transactions: [],
   }
 ];

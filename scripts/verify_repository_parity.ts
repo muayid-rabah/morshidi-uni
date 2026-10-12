@@ -6,7 +6,7 @@ import { UniversityStore } from '../server/store';
 
 const STUDENT_ID = '202310001';
 const COURSE_CODES = ['0200104', '1505211', '1506181'];
-const EXPECTED_COUNTS = { students: 5, courses: 68, offerings: 204, academicDates: 8, events: 0 } as const;
+const EXPECTED_COUNTS = { students: 6, courses: 68, offerings: 204, academicDates: 8, events: 0 } as const;
 
 interface Difference {
   path: string;

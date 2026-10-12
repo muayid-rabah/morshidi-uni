@@ -112,7 +112,7 @@ export function academicRecordFromProfile(profile: StudentProfile, termCode: str
     plan_id: profile.studyPlan,
     plan_version_id: profile.studyPlan,
     earned_credits: earnedCredits,
-    cumulative_gpa: profile.semesterHistory.at(-1)?.cumulativeGpa ?? 0,
+    cumulative_gpa: profile.semesterHistory.at(-1)?.cumulativeGpa ?? null,
     semesters: profile.semesterHistory,
     attempts,
     current_registered_sections: currentRegisteredSections,

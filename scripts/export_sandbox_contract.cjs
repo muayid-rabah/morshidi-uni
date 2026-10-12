@@ -7,6 +7,7 @@ const DATA_DIR = path.join(ROOT_DIR, 'src', 'data');
 // Generated contracts are private bootstrap fixtures for the University API.
 // They are imported into SQLite on first start and must never ship as public assets.
 const OUT_DIR = path.join(ROOT_DIR, 'server', 'seed-data');
+const API_SEED_PATH = path.join(ROOT_DIR, 'api', 'seedData.ts');
 
 if (!fs.existsSync(OUT_DIR)) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -35,6 +36,14 @@ stuCode = stuCode.replace(/export\s+const\s+demoStudents:\s*StudentProfile\[\]\s
 const stuCtx = {};
 vm.runInNewContext(secCode + '\n' + stuCode + '\n;stuCtx.students = demoStudents;', { stuCtx, console });
 const studentsSource = stuCtx.students;
+
+// 3b. Load academicDates.ts via vm
+let dateCode = fs.readFileSync(path.join(DATA_DIR, 'academicDates.ts'), 'utf8');
+dateCode = dateCode.replace(/import\s+[^;]+;/g, '');
+dateCode = dateCode.replace(/export\s+const\s+academicDates:\s*AcademicDate\[\]\s*=/, 'const academicDates =');
+const dateCtx = {};
+vm.runInNewContext(dateCode + '\n;dateCtx.dates = academicDates;', { dateCtx });
+const academicDatesSource = dateCtx.dates;
 
 // 4. Build courses export
 const exportedCourses = coursesSource.map(c => ({
@@ -72,7 +81,7 @@ const exportedOfferings = sectionsSource.map(sec => ({
 const exportedStudents = studentsSource.map(s => {
   const earned_credits = (s.completedCourses || []).reduce((sum, c) => sum + (courseMap.get(c)?.credits || 0), 0);
   const lastSem = (s.semesterHistory && s.semesterHistory.length > 0) ? s.semesterHistory[s.semesterHistory.length - 1] : null;
-  const cumulative_gpa = lastSem ? lastSem.cumulativeGpa : 0;
+  const cumulative_gpa = lastSem ? lastSem.cumulativeGpa : null;
 
   return {
     id: s.id,
@@ -100,12 +109,12 @@ const exportedStudents = studentsSource.map(s => {
 // 7. Build academic records export
 const exportedAcademicRecords = {
   schema_version: '1.0.0',
-  fixture_version: '2026.10.02.v1',
+  fixture_version: '2026.10.12.v2',
   institution_id: 'morshidi-sandbox',
   records: studentsSource.map(s => {
     const earned_credits = (s.completedCourses || []).reduce((sum, c) => sum + (courseMap.get(c)?.credits || 0), 0);
     const lastSem = (s.semesterHistory && s.semesterHistory.length > 0) ? s.semesterHistory[s.semesterHistory.length - 1] : null;
-    const cumulative_gpa = lastSem ? lastSem.cumulativeGpa : 0;
+    const cumulative_gpa = lastSem ? lastSem.cumulativeGpa : null;
 
     return {
       student_id: s.universityId,
@@ -154,7 +163,7 @@ const exportedAcademicRecords = {
 // 8. Build manifest export
 const exportedManifest = {
   schema_version: '1.0.0',
-  fixture_version: '2026.10.02.v1',
+  fixture_version: '2026.10.12.v2',
   institution_id: 'morshidi-sandbox',
   institution_name: 'جامعة مرشدي — البيئة التجريبية',
   institution_name_en: 'Morshidi University (Sandbox)',
@@ -199,10 +208,10 @@ checkSafety(exportedOfferings, 'offerings');
 checkSafety(exportedAcademicRecords, 'academic-records');
 
 // Counts Validation
-if (exportedStudents.length !== 5) throw new Error(`Expected 5 students, got ${exportedStudents.length}`);
+if (exportedStudents.length !== 6) throw new Error(`Expected 6 students, got ${exportedStudents.length}`);
 if (exportedCourses.length !== 68) throw new Error(`Expected 68 courses, got ${exportedCourses.length}`);
 if (exportedOfferings.length !== 204) throw new Error(`Expected 204 offerings, got ${exportedOfferings.length}`);
-if (exportedAcademicRecords.records.length !== 5) throw new Error(`Expected 5 academic records, got ${exportedAcademicRecords.records.length}`);
+if (exportedAcademicRecords.records.length !== 6) throw new Error(`Expected 6 academic records, got ${exportedAcademicRecords.records.length}`);
 
 // Write files
 const filesToWrite = [
@@ -217,10 +226,31 @@ for (const file of filesToWrite) {
   fs.writeFileSync(file.path, JSON.stringify(file.data, null, 2) + '\n', 'utf8');
 }
 
+const apiSeedData = `// Auto-generated self-contained data bundle for Vercel Serverless Function.
+// DO NOT EDIT DIRECTLY — generated from seed-data and src/data.
+
+export const MANIFEST = ${JSON.stringify(exportedManifest, null, 2)} as const;
+
+export const COURSES = ${JSON.stringify(exportedCourses)} as any[];
+
+export const OFFERINGS = ${JSON.stringify(exportedOfferings)} as any[];
+
+export const STUDENTS = ${JSON.stringify(exportedStudents)} as any[];
+
+export const ACADEMIC_RECORDS = ${JSON.stringify(exportedAcademicRecords)} as const;
+
+export const DEMO_STUDENTS = ${JSON.stringify(studentsSource)} as any[];
+
+export const ACADEMIC_DATES = ${JSON.stringify(academicDatesSource)} as any[];
+`;
+
+fs.writeFileSync(API_SEED_PATH, apiSeedData, 'utf8');
+
 console.log('✓ Sandbox contract successfully exported and validated:');
 console.log(`  - Students: ${exportedStudents.length}`);
 console.log(`  - Courses: ${exportedCourses.length}`);
 console.log(`  - Offerings: ${exportedOfferings.length}`);
 console.log(`  - Academic records: ${exportedAcademicRecords.records.length}`);
 console.log(`  - Output directory: ${OUT_DIR}`);
+console.log(`  - API bundle: ${API_SEED_PATH}`);
 console.log('  - Credential safety check: PASSED (zero credentials in export)');

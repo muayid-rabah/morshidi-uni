@@ -21,7 +21,7 @@ export interface MorshidiStudentProfileResponse {
   admissionYear: number;
   academicAdvisor: string;
   academicStatus: string;
-  gpa: number;
+  gpa: number | null;
   gpaScale: number;
   earnedCredits: number;
 }
@@ -65,7 +65,7 @@ export interface MorshidiSemesterGrades {
 }
 
 export interface MorshidiStudentGradesResponse {
-  cumulativeGpa: number;
+  cumulativeGpa: number | null;
   gpaScale: number;
   gradingPolicy: FakeUniversityGradingPolicy;
   semesters: MorshidiSemesterGrades[];
@@ -124,9 +124,9 @@ export function mapStudentToMorshidiProfile(
   profile: StudentProfile,
   record?: Record<string, unknown> | null,
 ): MorshidiStudentProfileResponse {
-  const gpa = typeof record?.cumulative_gpa === 'number'
+  const gpa = typeof record?.cumulative_gpa === 'number' || record?.cumulative_gpa === null
     ? record.cumulative_gpa
-    : (profile.semesterHistory?.at(-1)?.cumulativeGpa ?? 0);
+    : (profile.semesterHistory?.at(-1)?.cumulativeGpa ?? null);
 
   const earnedCredits = typeof record?.earned_credits === 'number'
     ? record.earned_credits
@@ -215,9 +215,9 @@ export function mapStudentGradesToMorshidi(
   profile: StudentProfile,
   record?: Record<string, unknown> | null,
 ): MorshidiStudentGradesResponse {
-  const cumulativeGpa = typeof record?.cumulative_gpa === 'number'
+  const cumulativeGpa = typeof record?.cumulative_gpa === 'number' || record?.cumulative_gpa === null
     ? record.cumulative_gpa
-    : (profile.semesterHistory?.at(-1)?.cumulativeGpa ?? 0);
+    : (profile.semesterHistory?.at(-1)?.cumulativeGpa ?? null);
 
   const semesters: MorshidiSemesterGrades[] = (profile.semesterHistory ?? []).map((sem) => ({
     term: sem.semesterId,

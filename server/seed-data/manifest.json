@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "fixture_version": "2026.10.02.v1",
+  "fixture_version": "2026.10.12.v2",
   "institution_id": "morshidi-sandbox",
   "institution_name": "جامعة مرشدي — البيئة التجريبية",
   "institution_name_en": "Morshidi University (Sandbox)",
@@ -9,7 +9,7 @@
   "total_plan_credits": 132,
   "synthetic": true,
   "source": "MORSHIDI_SANDBOX_UNIVERSITY",
-  "student_count": 5,
+  "student_count": 6,
   "course_count": 68,
   "offering_count": 204,
   "active_term": {

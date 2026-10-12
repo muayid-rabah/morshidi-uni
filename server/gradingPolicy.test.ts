@@ -9,7 +9,7 @@ import { mapStudentGradesToMorshidi, mapStudentToMorshidiProfile } from './seria
 
 interface AcademicRecordFixture {
   student_id: string;
-  cumulative_gpa: number;
+  cumulative_gpa: number | null;
   semesters: Array<{ semester_gpa: number; cumulative_gpa: number }>;
   attempts: Array<{ numeric_grade: number; letter_grade: string; outcome: string }>;
 }
@@ -60,15 +60,26 @@ describe('Fake University grading policy contract', () => {
             `${student.universityId}/${semester.semesterId}/${course.courseCode} course grade`);
         }
       }
-      assertWithin(student.semesterHistory.at(-1)?.cumulativeGpa ?? 0, gpa.numericMin, gpa.numericMax,
-        `${student.universityId} cumulative GPA`);
+      const cumulativeGpa = student.semesterHistory.at(-1)?.cumulativeGpa ?? null;
+      if (cumulativeGpa === null) {
+        assert.equal(student.semesterHistory.length, 0,
+          `${student.universityId} may have a null GPA only without semester history`);
+      } else {
+        assertWithin(cumulativeGpa, gpa.numericMin, gpa.numericMax,
+          `${student.universityId} cumulative GPA`);
+      }
     }
   });
 
   it('keeps every authoritative academic-record GPA and numeric course grade within policy bounds', () => {
     const { gpa, courseGrade } = FAKE_UNIVERSITY_GRADING_POLICY;
     for (const record of readAcademicRecordFixtures()) {
-      assertWithin(record.cumulative_gpa, gpa.numericMin, gpa.numericMax, `${record.student_id} record GPA`);
+      if (record.cumulative_gpa === null) {
+        assert.equal(record.semesters.length, 0,
+          `${record.student_id} may have a null GPA only without semester history`);
+      } else {
+        assertWithin(record.cumulative_gpa, gpa.numericMin, gpa.numericMax, `${record.student_id} record GPA`);
+      }
       for (const semester of record.semesters) {
         assertWithin(semester.semester_gpa, gpa.numericMin, gpa.numericMax, `${record.student_id} semester GPA`);
         assertWithin(semester.cumulative_gpa, gpa.numericMin, gpa.numericMax,

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
 const migrationPath = join(process.cwd(), 'supabase', 'migrations', '20261007120629_university_transactional_rpc.sql');
-const migration = readFileSync(migrationPath, 'utf8');
+const migration = readFileSync(migrationPath, 'utf8').replace(/\r\n/g, '\n');
 
 function functionDefinition(name: string): string {
   const start = migration.indexOf(`create or replace function ${name}`);
