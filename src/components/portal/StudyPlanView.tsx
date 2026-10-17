@@ -13,7 +13,7 @@ const groups: RequirementGroup[] = [
 export const StudyPlanView: React.FC = () => {
   const { activeStudent, courses } = useStudent();
   const progress = calculateStudentProgress(activeStudent, courses);
-  const requirementHours = getRequirementHours(courses);
+  const requirementHours = getRequirementHours(courses, activeStudent);
   const failedHours = activeStudent.semesterHistory.flatMap(semester => semester.courses).filter(course => course.status === 'راسب').reduce((sum, course) => sum + course.credits, 0);
   return <div className="study-plan-legacy animate-fade-in text-right">
     <header className="legacy-page-heading"><div><h1>الخطط الدراسية</h1><p>الخطة الدراسية المعتمدة لتخصص {activeStudent.major} — {activeStudent.studyPlan}</p></div></header>

@@ -3,6 +3,11 @@ import {
   FAKE_UNIVERSITY_GRADING_POLICY,
   type FakeUniversityGradingPolicy,
 } from '../academic/gradingPolicy';
+import {
+  resolveStudentCurriculumIdentity,
+  type CurriculumDefinition,
+  type CurriculumIdentity,
+} from '../curriculum/curriculum';
 
 /**
  * Clean, safe, high-level student profile contract for external Morshidi consumers.
@@ -24,6 +29,10 @@ export interface MorshidiStudentProfileResponse {
   gpa: number | null;
   gpaScale: number;
   earnedCredits: number;
+  planKey: string;
+  planNumber: string;
+  facultyCode: string;
+  majorCode: string;
 }
 
 /**
@@ -109,7 +118,12 @@ export interface MorshidiPlanCourseItem {
 
 export interface MorshidiAcademicPlanResponse {
   planId: string;
+  planKey: string;
+  planNumber: string;
+  faculty: string;
+  facultyCode: string;
   major: string;
+  majorCode: string;
   totalRequiredCredits: number;
   earnedCredits: number;
   remainingCredits: number;
@@ -123,7 +137,9 @@ export interface MorshidiAcademicPlanResponse {
 export function mapStudentToMorshidiProfile(
   profile: StudentProfile,
   record?: Record<string, unknown> | null,
+  identity?: CurriculumIdentity,
 ): MorshidiStudentProfileResponse {
+  const resolvedIdentity = identity ?? resolveStudentCurriculumIdentity(profile, record);
   const gpa = typeof record?.cumulative_gpa === 'number' || record?.cumulative_gpa === null
     ? record.cumulative_gpa
     : (profile.semesterHistory?.at(-1)?.cumulativeGpa ?? null);
@@ -146,6 +162,10 @@ export function mapStudentToMorshidiProfile(
     gpa,
     gpaScale: FAKE_UNIVERSITY_GRADING_POLICY.gpa.scale,
     earnedCredits,
+    planKey: resolvedIdentity.planKey,
+    planNumber: resolvedIdentity.planNumber,
+    facultyCode: resolvedIdentity.facultyCode,
+    majorCode: resolvedIdentity.majorCode,
   };
 }
 
@@ -288,13 +308,12 @@ export function mapStudentEnrollmentsToMorshidi(
 export function mapAcademicPlanToMorshidi(
   profile: StudentProfile,
   record: Record<string, unknown> | null | undefined,
-  catalog: Record<string, unknown>[],
+  curriculum: CurriculumDefinition,
 ): MorshidiAcademicPlanResponse {
-  const planId = String(
-    record?.plan_id ?? (profile.studyPlan ? profile.studyPlan.replace(/[^0-9]/g, '') || profile.studyPlan : '12'),
-  );
-  const major = profile.major;
-  const totalRequiredCredits = 132;
+  const { identity } = curriculum;
+  const planId = identity.planNumber;
+  const major = curriculum.major || profile.major;
+  const totalRequiredCredits = curriculum.totalRequiredCredits;
   const earnedCredits = typeof record?.earned_credits === 'number'
     ? record.earned_credits
     : (profile.semesterHistory?.reduce((sum, semester) => sum + semester.passedHours, 0) ?? 0);
@@ -305,7 +324,7 @@ export function mapAcademicPlanToMorshidi(
     (profile.currentRegisteredSections ?? []).map((s) => s.courseCode),
   );
 
-  const courses: MorshidiPlanCourseItem[] = catalog.map((c) => {
+  const courses: MorshidiPlanCourseItem[] = curriculum.courses.map((c) => {
     const code = String(c.code);
     let status: 'completed' | 'current' | 'remaining' = 'remaining';
     if (completedCodesSet.has(code)) {
@@ -327,7 +346,12 @@ export function mapAcademicPlanToMorshidi(
 
   return {
     planId,
+    planKey: identity.planKey,
+    planNumber: identity.planNumber,
+    faculty: curriculum.faculty || profile.faculty,
+    facultyCode: identity.facultyCode,
     major,
+    majorCode: identity.majorCode,
     totalRequiredCredits,
     earnedCredits,
     remainingCredits,

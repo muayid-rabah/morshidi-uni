@@ -122,7 +122,7 @@ export const DashboardView: React.FC = () => {
             <span className="text-xs font-normal text-slate-400">ساعة</span>
           </div>
           <div className="text-[11px] text-emerald-600 font-medium mt-1">
-            {progress.completionPercentage}% من 132 س
+            {progress.completionPercentage}% من {progress.totalPlanHours} س
           </div>
         </div>
 
@@ -230,11 +230,11 @@ export const DashboardView: React.FC = () => {
           <div className="flex items-center gap-2">
             <GraduationCap className="w-5 h-5 text-univ-700" />
             <h2 className="text-sm sm:text-base font-bold text-slate-900">
-              إنجاز متطلبات الخطة 12 (132 ساعة):
+              إنجاز متطلبات {activeStudent.studyPlan} ({progress.totalPlanHours} ساعة):
             </h2>
           </div>
           <span className="font-mono text-xs font-bold text-univ-800">
-            {progress.totalCompletedHours} / 132 س ({progress.completionPercentage}%)
+            {progress.totalCompletedHours} / {progress.totalPlanHours} س ({progress.completionPercentage}%)
           </span>
         </div>
 

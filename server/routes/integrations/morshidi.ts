@@ -1,4 +1,5 @@
-import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync, FastifyReply } from 'fastify';
+import type { StudentProfile } from '../../../src/types/student';
 import type { UniversityRepository } from '../../repositories/universityRepository';
 import { authenticateMorshidiClient } from '../../auth/morshidiClientAuth';
 import { verifyStudentCredentials } from '../../services/morshidiAuthVerifier';
@@ -11,6 +12,39 @@ import {
   mapStudentEnrollmentsToMorshidi,
   mapAcademicPlanToMorshidi,
 } from '../../serializers/morshidiContract';
+import {
+  CurriculumResolutionError,
+  LEGACY_AI_PLAN_KEY,
+  legacyAiCurriculum,
+  resolveStudentCurriculumIdentity,
+  type CurriculumDefinition,
+} from '../../curriculum/curriculum';
+
+async function curriculumForStudent(
+  repository: UniversityRepository,
+  profile: StudentProfile,
+  record: Record<string, unknown> | null,
+): Promise<CurriculumDefinition> {
+  const identity = resolveStudentCurriculumIdentity(profile, record);
+  const registered = await repository.getCurriculum?.(identity.planKey);
+  if (registered) {
+    if (registered.identity.planKey !== identity.planKey) {
+      throw new CurriculumResolutionError('CURRICULUM_IDENTITY_INVALID', 'Curriculum registry identity mismatch.');
+    }
+    return registered;
+  }
+  if (identity.planKey === LEGACY_AI_PLAN_KEY) {
+    return legacyAiCurriculum(await repository.listCourses());
+  }
+  throw new CurriculumResolutionError('CURRICULUM_NOT_MAPPED', 'Student curriculum is not registered.');
+}
+
+function curriculumFailure(reply: FastifyReply, error: unknown) {
+  if (error instanceof CurriculumResolutionError) {
+    return reply.code(409).send({ success: false, error: error.code });
+  }
+  throw error;
+}
 
 export interface MorshidiIntegrationRoutesOptions {
   repository?: UniversityRepository;
@@ -257,7 +291,13 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
       const record = await options.repository.getStudentRecord(studentId);
 
       // 3. Map to external, sanitized Morshidi contract
-      const student = mapStudentToMorshidiProfile(profile, record);
+      let curriculum: CurriculumDefinition;
+      try {
+        curriculum = await curriculumForStudent(options.repository, profile, record);
+      } catch (error) {
+        return curriculumFailure(reply, error);
+      }
+      const student = mapStudentToMorshidiProfile(profile, record, curriculum.identity);
 
       return reply.code(200).send({
         success: true,
@@ -300,8 +340,14 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
         return reply.code(404).send({ success: false, error: 'STUDENT_NOT_FOUND' });
       }
 
-      const catalog = await options.repository.listCourses();
-      const courses = mapStudentCoursesToMorshidi(profile, catalog);
+      const record = await options.repository.getStudentRecord(authResult.studentId);
+      let curriculum: CurriculumDefinition;
+      try {
+        curriculum = await curriculumForStudent(options.repository, profile, record);
+      } catch (error) {
+        return curriculumFailure(reply, error);
+      }
+      const courses = mapStudentCoursesToMorshidi(profile, curriculum.courses);
 
       return reply.code(200).send({
         success: true,
@@ -439,8 +485,13 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
       }
 
       const record = await options.repository.getStudentRecord(authResult.studentId);
-      const catalog = await options.repository.listCourses();
-      const plan = mapAcademicPlanToMorshidi(profile, record, catalog);
+      let curriculum: CurriculumDefinition;
+      try {
+        curriculum = await curriculumForStudent(options.repository, profile, record);
+      } catch (error) {
+        return curriculumFailure(reply, error);
+      }
+      const plan = mapAcademicPlanToMorshidi(profile, record, curriculum);
 
       return reply.code(200).send({
         success: true,

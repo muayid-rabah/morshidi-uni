@@ -107,6 +107,12 @@ export interface StudentProfile {
   studyType: string;
   admissionYear: number;
   studyPlan: string;
+  planKey?: string;
+  planNumber?: string;
+  facultyCode?: string;
+  majorCode?: string;
+  totalRequiredCredits?: number;
+  requirementGroupCredits?: Partial<Record<RequirementGroup, number>>;
   academicAdvisor: string;
   academicStatus: string;
   avatarUrl?: string;

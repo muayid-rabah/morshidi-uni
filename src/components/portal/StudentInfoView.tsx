@@ -1,5 +1,6 @@
 import React from 'react';
 import { useStudent } from '../../context/StudentContext';
+import { getStudentTotalRequiredCredits } from '../../services/academicEngine';
 import {
   User,
   GraduationCap,
@@ -21,6 +22,7 @@ import {
 
 export const StudentInfoView: React.FC = () => {
   const { activeStudent } = useStudent();
+  const totalRequiredCredits = getStudentTotalRequiredCredits(activeStudent);
   const officialFields = [
     { label: 'الاسم الكامل', value: activeStudent.name, icon: User },
     { label: 'الرقم الجامعي', value: activeStudent.universityId, icon: IdCard, mono: true },
@@ -29,7 +31,7 @@ export const StudentInfoView: React.FC = () => {
     { label: 'الدرجة العلمية', value: activeStudent.degree, icon: GraduationCap },
     { label: 'نوع الدراسة', value: activeStudent.studyType, icon: Calendar },
     { label: 'سنة القبول', value: String(activeStudent.admissionYear), icon: Calendar, mono: true },
-    { label: 'الخطة الدراسية', value: `${activeStudent.studyPlan} — 132 ساعة معتمدة`, icon: Award },
+    { label: 'الخطة الدراسية', value: `${activeStudent.studyPlan} — ${totalRequiredCredits || 'غير محدد'} ساعة معتمدة`, icon: Award },
     { label: 'الحالة الأكاديمية', value: activeStudent.academicStatus, icon: HeartPulse },
     { label: 'المرشد الأكاديمي', value: activeStudent.academicAdvisor, icon: Contact },
     { label: 'البريد الجامعي', value: `${activeStudent.universityId}@std.morshidi.edu.jo`, icon: Mail, mono: true },

@@ -15,6 +15,12 @@ import type {
   UniversityRepository,
   UpdateOfferingResult,
 } from './universityRepository';
+import {
+  LEGACY_AI_PLAN_KEY,
+  legacyAiCurriculum,
+  parsePlanKey,
+  type CurriculumDefinition,
+} from '../curriculum/curriculum';
 
 type JsonObject = Record<string, unknown>;
 
@@ -55,6 +61,7 @@ export interface UniversitySupabaseDataClient {
   listStudents(): Promise<StudentSnapshot[]>;
   listCourses(): Promise<Array<{ courseCode: string; data: JsonObject }>>;
   getCourse(courseCode: string): Promise<JsonObject | null>;
+  getCurriculum?(planKey: string): Promise<CurriculumDefinition | null>;
   listOfferings(termCode: string): Promise<OfferingSnapshot[]>;
   getOfferings(sectionIds: string[]): Promise<OfferingSnapshot[]>;
   getCalendar(): Promise<CalendarSnapshot | null>;
@@ -123,6 +130,55 @@ export class SupabaseJsUniversityDataClient implements UniversitySupabaseDataCli
       .maybeSingle();
     if (error) queryError('getCourse failed', error);
     return data ? data.data_json as JsonObject : null;
+  }
+
+  async getCurriculum(planKey: string): Promise<CurriculumDefinition | null> {
+    const { data: plan, error: planError } = await this.client.from('curriculum_plans')
+      .select('plan_key, plan_number, total_required_credits, curriculum_majors!inner(major_code, name_ar, curriculum_faculties!inner(faculty_code, name_ar))')
+      .eq('plan_key', planKey)
+      .eq('active', true)
+      .maybeSingle();
+    if (planError) queryError('getCurriculum plan failed', planError);
+    if (!plan) return null;
+
+    const [{ data: groups, error: groupError }, { data: courses, error: courseError }] = await Promise.all([
+      this.client.from('curriculum_requirement_groups')
+        .select('group_code, name_ar, requirement_type, required_credit_hours, display_order')
+        .eq('plan_key', planKey)
+        .order('display_order', { ascending: true }),
+      this.client.from('curriculum_plan_courses')
+        .select('course_code, name_ar, credit_hours, group_code, learning_type, prerequisite_codes, prerequisite_logic_status, review_required, review_reason, display_order')
+        .eq('plan_key', planKey)
+        .order('display_order', { ascending: true }),
+    ]);
+    if (groupError) queryError('getCurriculum groups failed', groupError);
+    if (courseError) queryError('getCurriculum courses failed', courseError);
+
+    const majorRelation = (plan.curriculum_majors as unknown) as Record<string, unknown>;
+    const facultyRelation = (majorRelation.curriculum_faculties as unknown) as Record<string, unknown>;
+    return {
+      identity: parsePlanKey(String(plan.plan_key)),
+      faculty: String(facultyRelation.name_ar ?? ''),
+      major: String(majorRelation.name_ar ?? ''),
+      totalRequiredCredits: Number(plan.total_required_credits),
+      requirementGroups: (groups ?? []).map((row) => ({
+        code: String(row.group_code),
+        name: String(row.name_ar),
+        type: String(row.requirement_type),
+        requiredCredits: Number(row.required_credit_hours),
+      })),
+      courses: (courses ?? []).map((row) => ({
+        code: String(row.course_code),
+        name: String(row.name_ar),
+        credits: Number(row.credit_hours),
+        group: String(row.group_code),
+        type: String(row.learning_type ?? ''),
+        prerequisites: Array.isArray(row.prerequisite_codes) ? row.prerequisite_codes : [],
+        prerequisiteLogicStatus: String(row.prerequisite_logic_status),
+        reviewRequired: row.review_required === true,
+        reviewReason: row.review_reason ?? null,
+      })),
+    };
   }
 
   async listOfferings(termCode: string): Promise<OfferingSnapshot[]> {
@@ -300,6 +356,10 @@ export class SupabaseUniversityRepository implements UniversityRepository {
   async listStudents() { return (await this.data.listStudents()).map((row) => row.profile); }
   async listCourses() { return (await this.data.listCourses()).map((row) => row.data); }
   getCourse(courseCode: string) { return this.data.getCourse(courseCode); }
+  async getCurriculum(planKey: string) {
+    if (this.data.getCurriculum) return this.data.getCurriculum(planKey);
+    return planKey === LEGACY_AI_PLAN_KEY ? legacyAiCurriculum(await this.listCourses()) : null;
+  }
   async listOfferings(termCode?: string) {
     const term = termCode || (await this.getCalendar()).currentTerm.code;
     return (await this.data.listOfferings(term)).map((row) => row.data);

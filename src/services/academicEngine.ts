@@ -1,6 +1,8 @@
 import type { PlanCourse, RequirementGroup, CourseStatus, EligibilityState, StudentProfile, CourseSection } from '../types/student';
 
+export const AI_PLAN12_KEY = 'ZU:IT:AI:P12';
 export const GOVERNED_DEGREE_PLAN_CREDITS = 132;
+const AI_PLAN12_PROJECT_CODES = new Set(['1505467', '1505468']);
 
 export const GOVERNED_GROUP_REQUIREMENTS: Record<RequirementGroup, number> = {
   "\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u062c\u0627\u0645\u0639\u0629 \u0627\u0644\u0625\u062c\u0628\u0627\u0631\u064a\u0629": 18,
@@ -12,8 +14,26 @@ export const GOVERNED_GROUP_REQUIREMENTS: Record<RequirementGroup, number> = {
 };
 
 
-export function getRequirementHours(_courses: PlanCourse[]): Record<string, number> {
-  return { ...GOVERNED_GROUP_REQUIREMENTS };
+function isAiPlan12(student: StudentProfile): boolean {
+  if (student.planKey) return student.planKey === AI_PLAN12_KEY;
+  const aiMajor = student.major === 'الذكاء الاصطناعي' || student.major === 'Artificial Intelligence';
+  const itFaculty = student.faculty === 'كلية تكنولوجيا المعلومات'
+    || student.faculty === 'Faculty of Information Technology';
+  return aiMajor && itFaculty && /12/.test(student.studyPlan);
+}
+
+export function getStudentTotalRequiredCredits(student: StudentProfile): number {
+  if (typeof student.totalRequiredCredits === 'number' && student.totalRequiredCredits >= 0) {
+    return student.totalRequiredCredits;
+  }
+  return isAiPlan12(student) ? GOVERNED_DEGREE_PLAN_CREDITS : 0;
+}
+
+export function getRequirementHours(
+  _courses: PlanCourse[], student?: StudentProfile,
+): Record<string, number> {
+  if (student?.requirementGroupCredits) return { ...student.requirementGroupCredits };
+  return student && !isAiPlan12(student) ? {} : { ...GOVERNED_GROUP_REQUIREMENTS };
 }
 
 export function arePrerequisitesSatisfied(prereqs: string[], completedCourses: string[]): boolean {
@@ -41,8 +61,8 @@ export function getRegistrationEligibility(
   if (course.reviewRequired || student.reviewCourses?.includes(courseCode)) {
     return { state: 'REVIEW_REQUIRED', label: 'تحتاج مراجعة', reason: course.reviewReason || 'تحتاج مراجعة المرشد الأكاديمي' };
   }
-  const isProjectOrTraining = /مشروع|تدريب/.test(course.name);
-  if (isProjectOrTraining && calculateStudentProgress(student, courses).totalCompletedHours < 90) {
+  const isAiProject = isAiPlan12(student) && AI_PLAN12_PROJECT_CODES.has(course.code);
+  if (isAiProject && calculateStudentProgress(student, courses).totalCompletedHours < 90) {
     return { state: 'NOT_ELIGIBLE', label: 'غير مؤهل', reason: 'تتطلب 90 ساعة منجزة' };
   }
   if (!arePrerequisitesSatisfied(course.prerequisites, student.completedCourses)) {
@@ -52,7 +72,7 @@ export function getRegistrationEligibility(
 }
 
 export function calculateStudentProgress(student: StudentProfile, courses: PlanCourse[]) {
-  const groupRequirements = getRequirementHours(courses);
+  const groupRequirements = getRequirementHours(courses, student);
   const groupCompletedHours = Object.fromEntries(
     Object.keys(groupRequirements).map((group) => [group, 0]),
   ) as Record<RequirementGroup, number>;
@@ -78,7 +98,7 @@ export function calculateStudentProgress(student: StudentProfile, courses: PlanC
         ? student.earned_credits
         : fallbackCompletedHours;
 
-  const totalPlanHours = GOVERNED_DEGREE_PLAN_CREDITS;
+  const totalPlanHours = getStudentTotalRequiredCredits(student);
   const totalCompletedHours = Math.max(0, reportedEarnedCredits);
 
   const currentRegisteredHours = student.currentRegisteredSections.reduce(

@@ -19,6 +19,7 @@ export class SQLiteUniversityRepository implements UniversityRepository {
   listStudents() { return Promise.resolve(this.store.listStudents()); }
   listCourses() { return Promise.resolve(this.store.listCourses()); }
   getCourse(courseCode: string) { return Promise.resolve(this.store.getCourse(courseCode)); }
+  getCurriculum(planKey: string) { return Promise.resolve(this.store.getCurriculum(planKey)); }
   listOfferings(termCode?: string) { return Promise.resolve(this.store.listOfferings(termCode)); }
   cursor() { return Promise.resolve(this.store.cursor()); }
   eventsSince(since: number, limit = 250) { return Promise.resolve(this.store.eventsSince(since, limit)); }

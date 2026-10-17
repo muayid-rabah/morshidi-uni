@@ -5,6 +5,11 @@ import { DatabaseSync } from 'node:sqlite';
 import { demoStudents } from '../src/data/demoStudents';
 import { academicDates } from '../src/data/academicDates';
 import type { StudentProfile, CourseGrade, SemesterRecord, CourseSection } from '../src/types/student';
+import {
+  LEGACY_AI_PLAN_KEY,
+  legacyAiCurriculum,
+  type CurriculumDefinition,
+} from './curriculum/curriculum';
 
 export type UniEventType =
   | 'student.created'
@@ -109,8 +114,12 @@ export function academicRecordFromProfile(profile: StudentProfile, termCode: str
     student_id: profile.universityId,
     program_id: profile.degree,
     major_id: profile.major,
-    plan_id: profile.studyPlan,
+    plan_id: profile.planNumber ?? profile.studyPlan,
     plan_version_id: profile.studyPlan,
+    plan_key: profile.planKey,
+    plan_number: profile.planNumber,
+    faculty_code: profile.facultyCode,
+    major_code: profile.majorCode,
     earned_credits: earnedCredits,
     cumulative_gpa: profile.semesterHistory.at(-1)?.cumulativeGpa ?? null,
     semesters: profile.semesterHistory,
@@ -126,6 +135,7 @@ export interface SeedBundle {
   records: { records: SeedRecord[] };
   courses: Record<string, unknown>[];
   offerings: SeedOffering[];
+  curricula?: CurriculumDefinition[];
 }
 
 export class UniversityStore {
@@ -191,6 +201,11 @@ export class UniversityStore {
         aggregate_key TEXT PRIMARY KEY,
         version INTEGER NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS curriculum_plans (
+        plan_key TEXT PRIMARY KEY,
+        data_json TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
     `);
     this.seedIfEmpty(seedSyntheticData);
   }
@@ -230,6 +245,13 @@ export class UniversityStore {
       }
       const insertCourse = this.db.prepare('INSERT INTO courses(course_code, data_json, updated_at) VALUES (?, ?, ?)');
       for (const course of courses) insertCourse.run(String(course.code), JSON.stringify(course), now);
+      const curricula = this.seedBundle?.curricula ?? [legacyAiCurriculum(courses)];
+      const insertCurriculum = this.db.prepare(
+        'INSERT INTO curriculum_plans(plan_key, data_json, updated_at) VALUES (?, ?, ?)',
+      );
+      for (const curriculum of curricula) {
+        insertCurriculum.run(curriculum.identity.planKey, JSON.stringify(curriculum), now);
+      }
       const insertOffering = this.db.prepare(
         'INSERT INTO offerings(section_id, course_code, term_code, data_json, updated_at) VALUES (?, ?, ?, ?, ?)',
       );
@@ -292,6 +314,16 @@ export class UniversityStore {
       | { data_json: string }
       | undefined;
     return row ? JSON.parse(row.data_json) as Record<string, unknown> : null;
+  }
+
+  getCurriculum(planKey: string): CurriculumDefinition | null {
+    const row = this.db.prepare('SELECT data_json FROM curriculum_plans WHERE plan_key = ?').get(planKey) as
+      | { data_json: string }
+      | undefined;
+    if (row) return JSON.parse(row.data_json) as CurriculumDefinition;
+    // Existing local databases predate curriculum_plans. Preserve only the
+    // exact AI Plan 12 fixture; never use this adapter for another major.
+    return planKey === LEGACY_AI_PLAN_KEY ? legacyAiCurriculum(this.listCourses()) : null;
   }
 
   listOfferings(termCode?: string): Record<string, unknown>[] {

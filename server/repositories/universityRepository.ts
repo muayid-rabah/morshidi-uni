@@ -1,5 +1,6 @@
 import type { CourseSection, StudentProfile } from '../../src/types/student';
 import type { CalendarState, GradeInput, UniEvent, UniEventType } from '../store';
+import type { CurriculumDefinition } from '../curriculum/curriculum';
 
 export interface DeliveryEventRow {
   cursor: number;
@@ -37,6 +38,7 @@ export interface UniversityRepository {
   listStudents(): Promise<StudentProfile[]>;
   listCourses(): Promise<Record<string, unknown>[]>;
   getCourse(courseCode: string): Promise<Record<string, unknown> | null>;
+  getCurriculum?(planKey: string): Promise<CurriculumDefinition | null>;
   listOfferings(termCode?: string): Promise<Record<string, unknown>[]>;
   cursor(): Promise<number>;
   eventsSince(since: number, limit?: number): Promise<UniEvent[]>;
