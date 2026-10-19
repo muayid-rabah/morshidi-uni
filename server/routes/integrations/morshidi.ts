@@ -19,6 +19,7 @@ import {
   resolveStudentCurriculumIdentity,
   type CurriculumDefinition,
 } from '../../curriculum/curriculum';
+import { RegistrationService } from '../../registration/registrationService';
 
 async function curriculumForStudent(
   repository: UniversityRepository,
@@ -122,6 +123,26 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
   const apiRateLimitConfig = {
     max: options.apiRateLimitMax ?? 60,
     timeWindow: options.apiRateLimitWindowMs ?? 60000,
+  };
+
+  const registrationService = options.repository ? new RegistrationService(options.repository) : null;
+
+  const authenticatedStudent = async (request: Parameters<typeof authenticateMorshidiIntegrationRequest>[0], reply: FastifyReply) => {
+    const result = await authenticateMorshidiIntegrationRequest(request, {
+      secret: options.morshidiTokenSecret,
+      expectedAudience: 'morshidi',
+      expectedIssuer: options.morshidiTokenIssuer,
+    });
+    if (result.success) return result.studentId;
+    if (result.reason === 'INTEGRATION_UNAVAILABLE') reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
+    else if (result.reason === 'TOKEN_EXPIRED') reply.code(401).send({ success: false, error: 'TOKEN_EXPIRED' });
+    else reply.code(401).send({ success: false, error: 'UNAUTHORIZED' });
+    return null;
+  };
+
+  const idempotencyKey = (request: { headers: Record<string, unknown> }) => {
+    const value = request.headers['idempotency-key'];
+    return typeof value === 'string' && value.trim().length >= 8 && value.length <= 200 ? value.trim() : null;
   };
 
   // 1. POST /auth/login
@@ -234,6 +255,31 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
       });
     },
   );
+
+  // Server-mediated token exchange. The trusted Morshidi backend resolves the
+  // external student ID from its authenticated owner mapping; the browser never
+  // receives client credentials or this short-lived upstream token.
+  app.post('/auth/exchange', { bodyLimit: 4 * 1024, config: { rateLimit: apiRateLimitConfig } }, async (request, reply) => {
+    const clientAuth = authenticateMorshidiClient(request, {
+      expectedClientId: options.morshidiClientId,
+      expectedClientSecret: options.morshidiClientSecret,
+    });
+    if (!clientAuth.authenticated) return reply.code(401).send({ success: false, error: 'INVALID_CLIENT' });
+    const body = request.body as { studentId?: unknown } | undefined;
+    if (typeof body?.studentId !== 'string') return reply.code(400).send({ success: false, error: 'INVALID_REQUEST' });
+    const studentId = body.studentId.trim();
+    if (!options.repository || !await options.repository.getStudent(studentId)) {
+      return reply.code(401).send({ success: false, error: 'INVALID_STUDENT' });
+    }
+    const token = await issueIntegrationToken({ studentId }, {
+      secret: options.morshidiTokenSecret,
+      expiresInSeconds: options.morshidiTokenExpirySeconds,
+      issuer: options.morshidiTokenIssuer,
+      audience: 'morshidi',
+    });
+    if (!token.success) return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
+    return reply.send({ success: true, accessToken: token.accessToken, tokenType: token.tokenType, expiresIn: token.expiresIn });
+  });
 
   // 2. GET /student/me
   app.get(
@@ -499,5 +545,85 @@ export const morshidiIntegrationRoutes: FastifyPluginAsync<MorshidiIntegrationRo
       });
     },
   );
+
+  app.get('/student/registration/context', { config: { rateLimit: apiRateLimitConfig } }, async (request, reply) => {
+    const studentId = await authenticatedStudent(request, reply);
+    if (!studentId) return;
+    if (!registrationService) return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
+    try {
+      return reply.send({ success: true, context: await registrationService.context(studentId) });
+    } catch (error) {
+      const code = error instanceof Error ? error.message : '';
+      if (code === 'STUDENT_NOT_FOUND') return reply.code(404).send({ success: false, error: code });
+      if (error instanceof CurriculumResolutionError) return curriculumFailure(reply, error);
+      throw error;
+    }
+  });
+
+  app.get('/student/registration/offerings', { config: { rateLimit: apiRateLimitConfig } }, async (request, reply) => {
+    const studentId = await authenticatedStudent(request, reply);
+    if (!studentId) return;
+    if (!registrationService) return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
+    try {
+      return reply.send({ success: true, offerings: await registrationService.offerings(studentId) });
+    } catch (error) {
+      const code = error instanceof Error ? error.message : '';
+      if (code === 'STUDENT_NOT_FOUND') return reply.code(404).send({ success: false, error: code });
+      if (error instanceof CurriculumResolutionError) return curriculumFailure(reply, error);
+      throw error;
+    }
+  });
+
+  app.post('/student/registration/preview', { bodyLimit: 16 * 1024, config: { rateLimit: apiRateLimitConfig } }, async (request, reply) => {
+    const studentId = await authenticatedStudent(request, reply);
+    if (!studentId) return;
+    if (!registrationService) return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
+    const body = request.body as { sectionIds?: unknown } | undefined;
+    if (!Array.isArray(body?.sectionIds) || body.sectionIds.length === 0 || body.sectionIds.some((id) => typeof id !== 'string')) {
+      return reply.code(400).send({ success: false, error: 'INVALID_REQUEST' });
+    }
+    try {
+      const preview = await registrationService.preview(studentId, body.sectionIds as string[]);
+      return reply.code(preview.canRegister ? 200 : 422).send({ success: preview.canRegister, preview });
+    } catch (error) {
+      if (error instanceof CurriculumResolutionError) return curriculumFailure(reply, error);
+      throw error;
+    }
+  });
+
+  app.post('/student/registration/register', { bodyLimit: 16 * 1024, config: { rateLimit: apiRateLimitConfig } }, async (request, reply) => {
+    const studentId = await authenticatedStudent(request, reply);
+    if (!studentId) return;
+    if (!registrationService) return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
+    const key = idempotencyKey(request as unknown as { headers: Record<string, unknown> });
+    const body = request.body as { sectionIds?: unknown } | undefined;
+    if (!key) return reply.code(400).send({ success: false, error: 'IDEMPOTENCY_KEY_REQUIRED' });
+    if (!Array.isArray(body?.sectionIds) || body.sectionIds.length === 0 || body.sectionIds.some((id) => typeof id !== 'string')) {
+      return reply.code(400).send({ success: false, error: 'INVALID_REQUEST' });
+    }
+    try {
+      const result = await registrationService.register(studentId, body.sectionIds as string[], key);
+      return reply.code(result.success ? 200 : 422).send(result);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : '';
+      const status = code === 'SECTION_NOT_FOUND' ? 404 : 409;
+      if (code) return reply.code(status).send({ success: false, error: code });
+      throw error;
+    }
+  });
+
+  app.post('/student/registration/drop', { bodyLimit: 8 * 1024, config: { rateLimit: apiRateLimitConfig } }, async (request, reply) => {
+    const studentId = await authenticatedStudent(request, reply);
+    if (!studentId) return;
+    if (!registrationService) return reply.code(500).send({ success: false, error: 'INTEGRATION_UNAVAILABLE' });
+    const key = idempotencyKey(request as unknown as { headers: Record<string, unknown> });
+    const body = request.body as { sectionId?: unknown } | undefined;
+    if (!key) return reply.code(400).send({ success: false, error: 'IDEMPOTENCY_KEY_REQUIRED' });
+    if (typeof body?.sectionId !== 'string' || !body.sectionId.trim()) {
+      return reply.code(400).send({ success: false, error: 'INVALID_REQUEST' });
+    }
+    const result = await registrationService.drop(studentId, body.sectionId.trim(), key);
+    return reply.code(result.success ? 200 : 422).send(result);
+  });
 };
 

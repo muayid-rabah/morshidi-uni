@@ -24,6 +24,10 @@ export class SQLiteUniversityRepository implements UniversityRepository {
   cursor() { return Promise.resolve(this.store.cursor()); }
   eventsSince(since: number, limit = 250) { return Promise.resolve(this.store.eventsSince(since, limit)); }
   deliveryBatch() { return Promise.resolve(this.store.deliveryBatch()); }
+  getEventByIdempotencyKey(key: string) { return Promise.resolve(this.store.eventByKey(key)); }
+  recordRegistrationAudit(studentId: string, payload: Record<string, unknown>, key: string) {
+    return Promise.resolve(this.store.recordRegistrationAudit(studentId, payload, key));
+  }
 
   async postGrade(input: GradeInput) { return this.store.postGrade(input); }
   async createStudent(profile: StudentProfile, idempotencyKey?: string) {

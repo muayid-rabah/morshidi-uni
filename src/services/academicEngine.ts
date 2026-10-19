@@ -133,9 +133,14 @@ function timeToMinutes(value: string): number {
 
 export function checkSectionConflict(sectionA: CourseSection, sectionB: CourseSection): boolean {
   if (sectionA.id === sectionB.id) return false;
-  if (!sectionA.daysArray.some((day) => sectionB.daysArray.includes(day))) return false;
-  return Math.max(timeToMinutes(sectionA.startTime), timeToMinutes(sectionB.startTime)) <
-    Math.min(timeToMinutes(sectionA.endTime), timeToMinutes(sectionB.endTime));
+  const blocks = (section: CourseSection) => section.meetings?.length
+    ? section.meetings
+    : section.daysArray.map((day) => ({ day, startTime: section.startTime, endTime: section.endTime }));
+  return blocks(sectionA).some((left) => blocks(sectionB).some((right) =>
+    left.day === right.day &&
+    Math.max(timeToMinutes(left.startTime), timeToMinutes(right.startTime)) <
+      Math.min(timeToMinutes(left.endTime), timeToMinutes(right.endTime)),
+  ));
 }
 
 export function findScheduleConflicts(sections: CourseSection[]) {

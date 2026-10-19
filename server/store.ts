@@ -5,6 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { demoStudents } from '../src/data/demoStudents';
 import { academicDates } from '../src/data/academicDates';
 import type { StudentProfile, CourseGrade, SemesterRecord, CourseSection } from '../src/types/student';
+import { checkSectionConflict } from '../src/services/academicEngine';
 import {
   LEGACY_AI_PLAN_KEY,
   legacyAiCurriculum,
@@ -21,6 +22,7 @@ export type UniEventType =
   | 'section.opened'
   | 'section.closed'
   | 'schedule.changed'
+  | 'registration.audit'
   | 'plan.updated';
 
 export interface UniEvent {
@@ -389,7 +391,7 @@ export class UniversityStore {
     return event;
   }
 
-  private eventByKey(key: string): UniEvent | null {
+  eventByKey(key: string): UniEvent | null {
     const row = this.db.prepare(
       'SELECT cursor, id, event_type, version, occurred_at, student_id, payload_json, idempotency_key FROM events WHERE idempotency_key = ?',
     ).get(key) as {
@@ -401,6 +403,12 @@ export class UniversityStore {
       ...(row.student_id ? { studentId: row.student_id } : {}),
       payload: JSON.parse(row.payload_json) as Record<string, unknown>, idempotencyKey: row.idempotency_key,
     } : null;
+  }
+
+  recordRegistrationAudit(studentId: string, payload: Record<string, unknown>, idempotencyKey: string): UniEvent {
+    const prior = this.eventByKey(idempotencyKey);
+    if (prior) return prior;
+    return this.transaction(() => this.appendEvent('registration.audit', payload, studentId, idempotencyKey));
   }
 
   private transaction<T>(operation: () => T): T {
@@ -558,17 +566,15 @@ export class UniversityStore {
           sectionNumber: Number(data.section_number), credits: Number(data.credits), instructor: String(data.instructor),
           days: String(data.days), daysArray: data.days_array as CourseSection['daysArray'],
           startTime: String(data.start_time), endTime: String(data.end_time), room: String(data.room),
+          meetings: Array.isArray(data.meetings) ? data.meetings as CourseSection['meetings'] : undefined,
           capacity: Number(data.capacity), enrolled: Number(data.enrolled), status: String(data.status) as CourseSection['status'],
         });
       }
       const totalHours = nextSections.reduce((sum, section) => sum + section.credits, 0);
       if (totalHours > 18) throw new Error('HOURS_LIMIT');
-      const toMinutes = (value: string) => { const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute; };
       for (let left = 0; left < nextSections.length; left += 1) {
         for (let right = left + 1; right < nextSections.length; right += 1) {
-          const a = nextSections[left]; const b = nextSections[right];
-          const sameDay = a.daysArray.some((day) => b.daysArray.includes(day));
-          if (sameDay && Math.max(toMinutes(a.startTime), toMinutes(b.startTime)) < Math.min(toMinutes(a.endTime), toMinutes(b.endTime))) {
+          if (checkSectionConflict(nextSections[left], nextSections[right])) {
             throw new Error('SCHEDULE_CONFLICT');
           }
         }
@@ -633,7 +639,7 @@ export class UniversityStore {
       | undefined;
     if (!row) throw new Error('SECTION_NOT_FOUND');
     const section = JSON.parse(row.data_json) as Record<string, unknown>;
-    const editableFields = ['capacity', 'enrolled', 'days', 'days_array', 'start_time', 'end_time', 'room', 'instructor', 'status'];
+    const editableFields = ['capacity', 'enrolled', 'days', 'days_array', 'start_time', 'end_time', 'meetings', 'room', 'instructor', 'status'];
     if (action === 'fill') {
       section.enrolled = Number(section.capacity);
       section.available = 0;

@@ -43,6 +43,8 @@ export interface UniversityRepository {
   cursor(): Promise<number>;
   eventsSince(since: number, limit?: number): Promise<UniEvent[]>;
   deliveryBatch(): Promise<DeliveryEventRow[]>;
+  getEventByIdempotencyKey(key: string): Promise<UniEvent | null>;
+  recordRegistrationAudit(studentId: string, payload: Record<string, unknown>, idempotencyKey: string): Promise<UniEvent>;
 
   postGrade(input: GradeInput): Promise<{ event: UniEvent; duplicate: boolean }>;
   createStudent(profile: StudentProfile, idempotencyKey?: string): Promise<UniEvent>;

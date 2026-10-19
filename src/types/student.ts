@@ -60,6 +60,11 @@ export interface CourseSection {
   daysArray: ('الأحد' | 'الاثنين' | 'الثلاثاء' | 'الأربعاء' | 'الخميس')[];
   startTime: string; // e.g. '09:30'
   endTime: string;   // e.g. '10:30'
+  meetings?: Array<{
+    day: 'الأحد' | 'الاثنين' | 'الثلاثاء' | 'الأربعاء' | 'الخميس';
+    startTime: string;
+    endTime: string;
+  }>;
   room: string;
   capacity: number;
   enrolled: number;

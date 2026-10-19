@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { CourseGrade, CourseSection, SemesterRecord, StudentProfile } from '../../src/types/student';
+import { checkSectionConflict } from '../../src/services/academicEngine';
 import {
   academicRecordFromProfile,
   type CalendarState,
@@ -383,6 +384,14 @@ export class SupabaseUniversityRepository implements UniversityRepository {
     }));
   }
 
+  getEventByIdempotencyKey(key: string) { return this.existingEvent(key); }
+  async recordRegistrationAudit(studentId: string, payload: JsonObject, idempotencyKey: string) {
+    const result = mutationResult(await this.data.rpc('university_record_registration_audit', {
+      p_student_id: studentId, p_payload: payload, p_idempotency_key: idempotencyKey,
+    }));
+    return result.event;
+  }
+
   private async existingEvent(key: string): Promise<UniEvent | null> {
     const row = await this.data.eventByKey(key);
     return row ? mapEvent(row) : null;
@@ -579,17 +588,15 @@ export class SupabaseUniversityRepository implements UniversityRepository {
           sectionNumber: Number(data.section_number), credits: Number(data.credits), instructor: String(data.instructor),
           days: String(data.days), daysArray: data.days_array as CourseSection['daysArray'],
           startTime: String(data.start_time), endTime: String(data.end_time), room: String(data.room),
+          meetings: Array.isArray(data.meetings) ? data.meetings as CourseSection['meetings'] : undefined,
           capacity: Number(data.capacity), enrolled: Number(data.enrolled), status: String(data.status) as CourseSection['status'],
         });
       }
       const totalHours = nextSections.reduce((sum, section) => sum + section.credits, 0);
       if (totalHours > 18) throw new Error('HOURS_LIMIT');
-      const toMinutes = (value: string) => { const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute; };
       for (let left = 0; left < nextSections.length; left += 1) {
         for (let right = left + 1; right < nextSections.length; right += 1) {
-          const a = nextSections[left]; const b = nextSections[right];
-          const sameDay = a.daysArray.some((day) => b.daysArray.includes(day));
-          if (sameDay && Math.max(toMinutes(a.startTime), toMinutes(b.startTime)) < Math.min(toMinutes(a.endTime), toMinutes(b.endTime))) {
+          if (checkSectionConflict(nextSections[left], nextSections[right])) {
             throw new Error('SCHEDULE_CONFLICT');
           }
         }
@@ -678,7 +685,7 @@ export class SupabaseUniversityRepository implements UniversityRepository {
       const row = (await this.data.getOfferings([sectionId]))[0];
       if (!row) throw new Error('SECTION_NOT_FOUND');
       const section = structuredClone(row.data);
-      const editableFields = ['capacity', 'enrolled', 'days', 'days_array', 'start_time', 'end_time', 'room', 'instructor', 'status'];
+      const editableFields = ['capacity', 'enrolled', 'days', 'days_array', 'start_time', 'end_time', 'meetings', 'room', 'instructor', 'status'];
       if (action === 'fill') {
         section.enrolled = Number(section.capacity); section.available = 0; section.status = 'ممتلئة';
       } else if (action === 'open') {
