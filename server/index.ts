@@ -183,6 +183,11 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     return user;
   }
 
+  // Exactly the event types accepted by the Morshidi university webhook.
+  const deliverableTypes = new Set<string>([
+    'grade.posted', 'record.updated', 'registration.opened', 'registration.closed',
+    'offering.updated', 'section.opened', 'section.closed', 'schedule.changed', 'plan.updated',
+  ]);
   const pending = new Set<number>();
   let deliveryRunning = false;
   async function deliverPending() {
@@ -190,39 +195,50 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
     deliveryRunning = true;
     try {
       for (const row of await repository.deliveryBatch()) {
-        const event: UniEvent = {
-          cursor: row.cursor,
-          id: row.id,
-          type: row.event_type,
-          version: row.version,
-          occurredAt: row.occurred_at,
-          ...(row.student_id ? { studentId: row.student_id } : {}),
-          payload: JSON.parse(row.payload_json) as Record<string, unknown>,
-          idempotencyKey: row.idempotency_key,
-        };
         if (pending.has(row.cursor)) continue;
         pending.add(row.cursor);
-        const body = JSON.stringify({
-          id: event.id, type: event.type, version: event.version, occurredAt: event.occurredAt,
-          ...(event.studentId ? { studentId: event.studentId } : {}),
-          payload: event.payload, idempotencyKey: event.idempotencyKey,
-        });
-        let statusCode: number | null = null;
         try {
-          const response = await fetcher(webhookUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json; charset=utf-8',
-              'X-Uni-Signature': signWebhook(body, webhookSecret),
-              'Idempotency-Key': event.idempotencyKey,
-            },
-            body,
-            signal: AbortSignal.timeout(5000),
+          if (!deliverableTypes.has(row.event_type)) {
+            await repository.terminalDelivery(row.cursor, 'unsupported_event', null);
+            continue;
+          }
+          let payload: Record<string, unknown>;
+          try {
+            const parsed: unknown = JSON.parse(row.payload_json);
+            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('invalid payload');
+            payload = parsed as Record<string, unknown>;
+          } catch {
+            await repository.terminalDelivery(row.cursor, 'invalid_event', null);
+            continue;
+          }
+          const event: UniEvent = {
+            cursor: row.cursor, id: row.id, type: row.event_type, version: row.version,
+            occurredAt: row.occurred_at, ...(row.student_id ? { studentId: row.student_id } : {}),
+            payload, idempotencyKey: row.idempotency_key,
+          };
+          const body = JSON.stringify({
+            id: event.id, type: event.type, version: event.version, occurredAt: event.occurredAt,
+            ...(event.studentId ? { studentId: event.studentId } : {}),
+            payload: event.payload, idempotencyKey: event.idempotencyKey,
           });
-          statusCode = response.status;
-          await repository.markDelivery(row.cursor, statusCode, response.ok);
+          let response: Response;
+          try {
+            response = await fetcher(webhookUrl, {
+              method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8',
+                'X-Uni-Signature': signWebhook(body, webhookSecret), 'Idempotency-Key': event.idempotencyKey },
+              body, signal: AbortSignal.timeout(5000),
+            });
+          } catch {
+            await repository.markDelivery(row.cursor, null, false);
+            continue;
+          }
+          if (response.ok) await repository.markDelivery(row.cursor, response.status, true);
+          else if (response.status >= 400 && response.status < 500 && ![408, 425, 429].includes(response.status)) {
+            await repository.terminalDelivery(row.cursor, 'http_rejected', response.status);
+          } else await repository.markDelivery(row.cursor, response.status, false);
         } catch {
-          await repository.markDelivery(row.cursor, statusCode, false);
+          // A database failure on one row must not prevent attempts for later rows.
+          app.log.error('University webhook delivery state update failed');
         } finally {
           pending.delete(row.cursor);
         }
@@ -234,7 +250,9 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
 
   let webhookWorker: NodeJS.Timeout | null = null;
   if (options.startWebhookWorker !== false) {
-    webhookWorker = setInterval(() => { void deliverPending(); }, 1000);
+    webhookWorker = setInterval(() => {
+      void deliverPending().catch(() => app.log.error('University webhook delivery scan failed'));
+    }, 1000);
     webhookWorker.unref();
   }
 
@@ -412,15 +430,25 @@ export function createUniversityServer(options: ServerOptions = {}): FastifyInst
   app.post('/v1/admin/registration/open', async (request, reply) => {
     if (!await adminUser(request, reply)) return;
     const body = (request.body ?? {}) as { start?: string; end?: string };
-    const result = await repository.setRegistration(true, body.start, body.end, request.headers['idempotency-key'] as string | undefined);
-    return { currentTerm: result.calendar.currentTerm, registrationOpen: result.calendar.registrationOpen,
-      registrationWindow: result.calendar.registrationWindow, event: result.event };
+    try {
+      const result = await repository.setRegistration(true, body.start, body.end, request.headers['idempotency-key'] as string | undefined);
+      return { currentTerm: result.calendar.currentTerm, registrationOpen: result.calendar.registrationOpen,
+        registrationWindow: result.calendar.registrationWindow, event: result.event };
+    } catch (error) {
+      if (error instanceof Error && error.message === 'IDEMPOTENCY_KEY_CONFLICT') return reply.code(409).send({ error: error.message });
+      throw error;
+    }
   });
   app.post('/v1/admin/registration/close', async (request, reply) => {
     if (!await adminUser(request, reply)) return;
-    const result = await repository.setRegistration(false, undefined, undefined, request.headers['idempotency-key'] as string | undefined);
-    return { currentTerm: result.calendar.currentTerm, registrationOpen: result.calendar.registrationOpen,
-      registrationWindow: result.calendar.registrationWindow, event: result.event };
+    try {
+      const result = await repository.setRegistration(false, undefined, undefined, request.headers['idempotency-key'] as string | undefined);
+      return { currentTerm: result.calendar.currentTerm, registrationOpen: result.calendar.registrationOpen,
+        registrationWindow: result.calendar.registrationWindow, event: result.event };
+    } catch (error) {
+      if (error instanceof Error && error.message === 'IDEMPOTENCY_KEY_CONFLICT') return reply.code(409).send({ error: error.message });
+      throw error;
+    }
   });
   app.patch('/v1/admin/offerings/:id', async (request, reply) => {
     if (!await adminUser(request, reply)) return;

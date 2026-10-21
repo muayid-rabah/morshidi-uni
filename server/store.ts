@@ -199,6 +199,11 @@ export class UniversityStore {
         next_attempt_at TEXT NOT NULL,
         last_status INTEGER
       );
+      CREATE TABLE IF NOT EXISTS registration_commands (
+        idempotency_key TEXT PRIMARY KEY,
+        event_type TEXT NOT NULL,
+        event_id TEXT REFERENCES events(id)
+      );
       CREATE TABLE IF NOT EXISTS aggregate_versions (
         aggregate_key TEXT PRIMARY KEY,
         version INTEGER NOT NULL
@@ -209,6 +214,11 @@ export class UniversityStore {
         updated_at TEXT NOT NULL
       );
     `);
+    const columns = this.db.prepare('PRAGMA table_info(events)').all() as Array<{ name: string }>;
+    if (!columns.some((column) => column.name === 'delivery_terminal_reason')) {
+      this.db.exec('ALTER TABLE events ADD COLUMN delivery_terminal_reason TEXT');
+      this.db.exec('ALTER TABLE events ADD COLUMN delivery_terminal_at TEXT');
+    }
     this.seedIfEmpty(seedSyntheticData);
   }
 
@@ -613,16 +623,30 @@ export class UniversityStore {
 
   setRegistration(open: boolean, start?: string | null, end?: string | null, idempotencyKey?: string) {
     const key = makeKey(idempotencyKey);
-    const prior = this.eventByKey(key);
-    if (prior) return { calendar: this.getCalendar(), event: prior };
-    const calendar = this.getCalendar();
-    calendar.registrationOpen = open;
-    calendar.registrationWindow = { start: start ?? calendar.registrationWindow.start, end: end ?? calendar.registrationWindow.end };
     return this.transaction(() => {
-      this.db.prepare('UPDATE calendar SET data_json = ?, updated_at = ? WHERE id = 1').run(JSON.stringify(calendar), currentTime());
       const type: UniEventType = open ? 'registration.opened' : 'registration.closed';
-      const event = this.appendEvent(type, { currentTerm: calendar.currentTerm, registrationWindow: calendar.registrationWindow }, undefined,
-        key);
+      const command = this.db.prepare('SELECT event_type, event_id FROM registration_commands WHERE idempotency_key = ?')
+        .get(key) as { event_type: string; event_id: string | null } | undefined;
+      const calendar = this.getCalendar();
+      if (command) {
+        if (command.event_type !== type) throw new Error('IDEMPOTENCY_KEY_CONFLICT');
+        return { calendar, event: command.event_id ? this.eventByKey(key) : null };
+      }
+      const prior = this.eventByKey(key);
+      if (prior) {
+        if (prior.type !== type) throw new Error('IDEMPOTENCY_KEY_CONFLICT');
+        this.db.prepare('INSERT INTO registration_commands(idempotency_key,event_type,event_id) VALUES (?,?,?)').run(key, type, prior.id);
+        return { calendar, event: prior };
+      }
+      if (calendar.registrationOpen === open) {
+        this.db.prepare('INSERT INTO registration_commands(idempotency_key,event_type,event_id) VALUES (?,?,NULL)').run(key, type);
+        return { calendar, event: null };
+      }
+      calendar.registrationOpen = open;
+      calendar.registrationWindow = { start: start ?? calendar.registrationWindow.start, end: end ?? calendar.registrationWindow.end };
+      this.db.prepare('UPDATE calendar SET data_json = ?, updated_at = ? WHERE id = 1').run(JSON.stringify(calendar), currentTime());
+      const event = this.appendEvent(type, { currentTerm: calendar.currentTerm, registrationWindow: calendar.registrationWindow }, undefined, key);
+      this.db.prepare('INSERT INTO registration_commands(idempotency_key,event_type,event_id) VALUES (?,?,?)').run(key, type, event.id);
       return { calendar, event };
     });
   }
@@ -676,7 +700,7 @@ export class UniversityStore {
 
   deliveryBatch() {
     return this.db.prepare(
-      'SELECT cursor, id, event_type, version, occurred_at, student_id, payload_json, idempotency_key, attempts FROM events WHERE delivered_at IS NULL AND next_attempt_at <= ? ORDER BY cursor LIMIT 25',
+      'SELECT cursor, id, event_type, version, occurred_at, student_id, payload_json, idempotency_key, attempts FROM events WHERE delivered_at IS NULL AND delivery_terminal_reason IS NULL AND next_attempt_at <= ? ORDER BY cursor LIMIT 25',
     ).all(currentTime()) as Array<{
       cursor: number; id: string; event_type: UniEventType; version: number; occurred_at: string;
       student_id: string | null; payload_json: string; idempotency_key: string; attempts: number;
@@ -684,13 +708,19 @@ export class UniversityStore {
   }
 
   markDelivery(cursor: number, status: number | null, delivered: boolean) {
-    const row = this.db.prepare('SELECT attempts FROM events WHERE cursor = ?').get(cursor) as { attempts: number } | undefined;
+    const row = this.db.prepare('SELECT attempts FROM events WHERE cursor = ? AND delivered_at IS NULL AND delivery_terminal_reason IS NULL').get(cursor) as { attempts: number } | undefined;
     if (!row) return;
     const attempts = row.attempts + 1;
     const delaySeconds = Math.min(60, 2 ** Math.min(attempts, 6));
-    this.db.prepare('UPDATE events SET attempts = ?, last_status = ?, delivered_at = ?, next_attempt_at = ? WHERE cursor = ?')
+    this.db.prepare('UPDATE events SET attempts = ?, last_status = ?, delivered_at = ?, next_attempt_at = ? WHERE cursor = ? AND delivered_at IS NULL AND delivery_terminal_reason IS NULL')
       .run(attempts, status, delivered ? currentTime() : null,
         new Date(Date.now() + delaySeconds * 1000).toISOString(), cursor);
+  }
+
+  terminalDelivery(cursor: number, reason: 'unsupported_event' | 'http_rejected' | 'invalid_event', status: number | null) {
+    this.db.prepare(`UPDATE events SET delivery_terminal_reason = ?, delivery_terminal_at = ?, last_status = ?,
+      attempts = attempts + ? WHERE cursor = ? AND delivered_at IS NULL AND delivery_terminal_reason IS NULL`)
+      .run(reason, currentTime(), status, reason === 'http_rejected' ? 1 : 0, cursor);
   }
 
   close() { this.db.close(); }

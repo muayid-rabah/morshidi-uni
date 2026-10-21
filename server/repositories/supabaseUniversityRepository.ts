@@ -79,7 +79,7 @@ function queryError(operation: string, error: { message: string } | null): never
   const knownCodes = [
     'STUDENT_NOT_FOUND', 'STUDENT_ALREADY_EXISTS', 'SECTION_NOT_FOUND',
     'UNIVERSITY_DATA_NOT_INITIALIZED', 'CONCURRENT_MODIFICATION',
-    'REGISTRATION_CLOSED', 'WRONG_TERM',
+    'REGISTRATION_CLOSED', 'WRONG_TERM', 'IDEMPOTENCY_KEY_CONFLICT',
   ];
   const knownCode = knownCodes.find((code) => error?.message.includes(code));
   if (knownCode) throw new Error(knownCode);
@@ -258,6 +258,7 @@ export class SupabaseJsUniversityDataClient implements UniversitySupabaseDataCli
     const { data, error } = await this.client.from('events')
       .select('cursor, id, event_type, version, occurred_at, student_id, payload_json, idempotency_key, attempts')
       .is('delivered_at', null)
+      .is('delivery_terminal_reason', null)
       .lte('next_attempt_at', now)
       .order('cursor', { ascending: true })
       .limit(25);
@@ -647,10 +648,8 @@ export class SupabaseUniversityRepository implements UniversityRepository {
     start?: string | null,
     end?: string | null,
     idempotencyKey?: string,
-  ): Promise<{ calendar: CalendarState; event: UniEvent }> {
+  ): Promise<{ calendar: CalendarState; event: UniEvent | null }> {
     const key = makeKey(idempotencyKey);
-    const prior = await this.existingEvent(key);
-    if (prior) return { calendar: await this.getCalendar(), event: prior };
     return this.retryConcurrent(async () => {
       const snapshot = await this.data.getCalendar();
       if (!snapshot) throw new Error('UNIVERSITY_DATA_NOT_INITIALIZED');
@@ -658,14 +657,16 @@ export class SupabaseUniversityRepository implements UniversityRepository {
       calendar.registrationOpen = open;
       calendar.registrationWindow = { start: start ?? calendar.registrationWindow.start, end: end ?? calendar.registrationWindow.end };
       const type: UniEventType = open ? 'registration.opened' : 'registration.closed';
-      const result = mutationResult(await this.data.rpc('university_set_registration', {
+      const result = await this.data.rpc('university_set_registration_v2', {
         p_expected_updated_at: snapshot.updatedAt,
         p_calendar_json: calendar,
         p_event_type: type,
         p_event_payload: { currentTerm: calendar.currentTerm, registrationWindow: calendar.registrationWindow },
         p_idempotency_key: key,
-      }));
-      return { calendar: result.duplicate ? await this.getCalendar() : calendar, event: result.event };
+      }) as { duplicate?: boolean; event?: unknown };
+      if (!result || !('event' in result)) throw new Error('INVALID_RPC_RESPONSE');
+      return { calendar: result.duplicate || result.event === null ? await this.getCalendar() : calendar,
+        event: result.event === null ? null : eventFromRpc(result.event) };
     });
   }
 
@@ -729,6 +730,10 @@ export class SupabaseUniversityRepository implements UniversityRepository {
       p_status: status,
       p_delivered: delivered,
     });
+  }
+
+  async terminalDelivery(cursor: number, reason: 'unsupported_event' | 'http_rejected' | 'invalid_event', status: number | null): Promise<void> {
+    await this.data.rpc('university_terminal_delivery', { p_cursor: cursor, p_reason: reason, p_status: status });
   }
 
   async close(): Promise<void> {

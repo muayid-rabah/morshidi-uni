@@ -80,3 +80,26 @@ describe('university transactional RPC migration hardening', () => {
     assert.match(definition.slice(handler), /where idempotency_key = p_idempotency_key[\s\S]*return university_private\.event_json\(v_existing\)/);
   });
 });
+
+describe('notification reliability migration', () => {
+  const sql = readFileSync(join(process.cwd(), 'supabase', 'migrations', '20261021161034_notification_reliability_idempotency.sql'), 'utf8');
+  it('records a no-op under a locked key and calendar before any transition', () => {
+    const keyLock = sql.indexOf('pg_advisory_xact_lock');
+    const replay = sql.indexOf('from university_private.registration_commands where idempotency_key');
+    const rowLock = sql.indexOf('from public.calendar where id = 1 for update');
+    const noOp = sql.indexOf("if (v_calendar.data_json->>'registrationOpen')::boolean = v_open then");
+    const write = sql.indexOf('update public.calendar set data_json');
+    assert.ok(keyLock >= 0 && replay > keyLock && rowLock > replay && noOp > rowLock && write > noOp);
+    assert.match(sql.slice(noOp, write), /insert into university_private\.registration_commands\(idempotency_key, event_type\)/);
+    assert.match(sql, /IDEMPOTENCY_KEY_CONFLICT/);
+    assert.match(sql, /university_set_registration_v2/);
+  });
+  it('keeps terminal failures distinguishable and restricts privileged functions', () => {
+    assert.match(sql, /delivery_terminal_reason in \('unsupported_event', 'http_rejected', 'invalid_event'\)/);
+    assert.match(sql, /where cursor = p_cursor and delivered_at is null and delivery_terminal_reason is null/);
+    assert.match(sql, /revoke all on university_private\.registration_commands from public, anon, authenticated, service_role/);
+    for (const name of ['university_set_registration', 'university_set_registration_v2', 'university_mark_delivery', 'university_terminal_delivery']) {
+      assert.match(sql, new RegExp(`revoke all on function public\\.${name}\\([^;]+ from public, anon, authenticated, service_role`));
+    }
+  });
+});

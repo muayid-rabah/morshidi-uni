@@ -113,7 +113,7 @@ test('calendar owns current term and duplicate registration commands do not appe
   const first = store.setRegistration(true, '2026-10-05T00:00:00Z', '2026-10-10T00:00:00Z', 'registration-open-1');
   const cursor = store.cursor();
   const retry = store.setRegistration(true, null, null, 'registration-open-1');
-  assert.equal(retry.event.id, first.event.id);
+  assert.equal(retry.event?.id, first.event?.id);
   assert.equal(store.cursor(), cursor);
   assert.equal(retry.calendar.registrationOpen, true);
   assert.equal(store.eventsSince(0)[0].type, 'registration.opened');

@@ -135,6 +135,7 @@ describe('UniversityRepository read parity', () => {
     const repository = new SupabaseUniversityRepository(data);
 
     const calendarResult = await repository.setRegistration(true, null, null, 'calendar-key');
+    assert.ok(calendarResult.event);
     assert.equal(calendarResult.event.occurredAt, '2026-10-07T12:34:56.000Z');
     assert.equal('studentId' in calendarResult.event, false);
     assert.deepEqual(calendarResult.event.payload, { nullableValue: null });
@@ -208,4 +209,26 @@ describe('createUniversityRepository', () => {
       env: { UNI_DATA_BACKEND: 'supabase', SUPABASE_URL: 'https://example.supabase.co' },
     }), /SUPABASE_SECRET_KEY is required/);
   });
+});
+
+it('does not emit a second Supabase opening after a concurrent transition', async () => {
+  const store = new UniversityStore(':memory:');
+  try {
+    const data = new SQLiteBackedSupabaseDataClient(store);
+    let calls = 0;
+    data.rpc = async () => {
+      calls++;
+      if (calls === 1) {
+        store.setRegistration(true, null, null, 'concurrent-winner');
+        throw new Error('CONCURRENT_MODIFICATION');
+      }
+      const result = store.setRegistration(true, null, null, 'loser');
+      return { duplicate: false, event: result.event };
+    };
+    const result = await new SupabaseUniversityRepository(data).setRegistration(true, null, null, 'loser');
+    assert.equal(result.calendar.registrationOpen, true);
+    assert.equal(result.event, null);
+    assert.equal(calls, 2);
+    assert.equal(store.eventsSince(0).length, 1);
+  } finally { store.close(); }
 });

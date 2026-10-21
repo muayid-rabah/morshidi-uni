@@ -64,5 +64,8 @@ export class SQLiteUniversityRepository implements UniversityRepository {
   async markDelivery(cursor: number, status: number | null, delivered: boolean) {
     this.store.markDelivery(cursor, status, delivered);
   }
+  async terminalDelivery(cursor: number, reason: 'unsupported_event' | 'http_rejected' | 'invalid_event', status: number | null) {
+    this.store.terminalDelivery(cursor, reason, status);
+  }
   async close() { this.store.close(); }
 }

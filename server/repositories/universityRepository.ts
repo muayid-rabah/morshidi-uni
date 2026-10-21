@@ -60,7 +60,7 @@ export interface UniversityRepository {
     start?: string | null,
     end?: string | null,
     idempotencyKey?: string,
-  ): Promise<{ calendar: CalendarState; event: UniEvent }>;
+  ): Promise<{ calendar: CalendarState; event: UniEvent | null }>;
   updateOffering(
     sectionId: string,
     patch: Record<string, unknown>,
@@ -68,5 +68,6 @@ export interface UniversityRepository {
     idempotencyKey?: string,
   ): Promise<UpdateOfferingResult>;
   markDelivery(cursor: number, status: number | null, delivered: boolean): Promise<void>;
+  terminalDelivery(cursor: number, reason: 'unsupported_event' | 'http_rejected' | 'invalid_event', status: number | null): Promise<void>;
   close(): Promise<void>;
 }
