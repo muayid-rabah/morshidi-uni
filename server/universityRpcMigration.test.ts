@@ -103,3 +103,27 @@ describe('notification reliability migration', () => {
     }
   });
 });
+
+describe('historical cutover terminal-reason reconciliation migration', () => {
+  const sql = readFileSync(join(process.cwd(), 'supabase', 'migrations', '20261022123000_reconcile_historical_cutover_terminal_reason.sql'), 'utf8');
+
+  it('is forward-only, atomic, and contains no historical data rewrite', () => {
+    const statements = sql.replace(/^--.*$/gm, '').trim();
+    assert.match(statements, /^begin;/i);
+    assert.match(statements, /commit;$/i);
+    assert.doesNotMatch(sql, /\b(update|delete|truncate)\s+public\.events\b/i);
+    assert.doesNotMatch(sql, /\binsert\s+into\s+public\.events\b/i);
+  });
+
+  it('accepts only the original or already-reconciled constraint before changing it', () => {
+    assert.match(sql, /pg_get_expr\(c\.conbin, c\.conrelid, true\)/i);
+    assert.match(sql, /EXPECTED_EVENTS_TERMINAL_REASON_CHECK_MISSING/);
+    assert.match(sql, /UNEXPECTED_EVENTS_TERMINAL_REASON_CHECK/);
+    assert.match(sql, /if v_compact = v_expected_original[\s\S]*elsif v_compact = v_expected_reconciled/i);
+  });
+
+  it('adds historical_cutover without removing existing terminal reasons', () => {
+    assert.match(sql, /\('unsupported_event', 'http_rejected', 'invalid_event', 'historical_cutover'\)/);
+    assert.match(sql, /already have the reviewed manual schema correction/i);
+  });
+});
